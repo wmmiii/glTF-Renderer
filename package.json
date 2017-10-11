@@ -1,0 +1,22 @@
+{
+  "name": "glTF-Renderer",
+  "version": "1.0.0",
+  "description": "A from-the-ground-up implementation of a glTF model loader and renderer using PBR techniques.",
+  "main": "src/Main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "server": "webpack-dev-server"
+  },
+  "author": "William Martin III",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^2.5.3",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.9.1"
+  },
+  "dependencies": {
+    "@types/gl-matrix": "^2.3.0",
+    "gl-matrix": "^2.4.0"
+  }
+}
