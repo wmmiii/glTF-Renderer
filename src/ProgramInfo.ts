@@ -1,3 +1,4 @@
+// TODO: Make a generic ProgramInfo and make one per shader program.
 export default interface ProgramInfo {
   program: WebGLProgram;
   attributes: {
@@ -12,7 +13,10 @@ export default interface ProgramInfo {
       itModelViewMatrix: WebGLUniformLocation;
     };
     samplers: {
-      baseSampler: WebGLUniformLocation; normalSampler: WebGLUniformLocation;
+      baseSampler: WebGLUniformLocation; emissiveSampler: WebGLUniformLocation;
+      normalSampler: WebGLUniformLocation;
+      reflectionSampler: WebGLUniformLocation;
     };
-  }
+    values: {emissiveFactor: WebGLUniformLocation;}
+  };
 }

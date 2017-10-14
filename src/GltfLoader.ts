@@ -1,8 +1,10 @@
 import {Model} from 'Model';
 
+import {fetchResource, resolvePath} from './ResourceFetcher';
+
 export default class GltfLoader {
   loadGltf(url: string, waitForTextures = true): Promise<Model> {
-    return this.loadAsset(url).then((response: any) => {
+    return fetchResource(url).then((response: any) => {
       const modelResponse = JSON.parse(response);
 
       let model: Model = {
@@ -30,8 +32,7 @@ export default class GltfLoader {
                                     image.onload = () => resolve();
                                   });
                               image.crossOrigin = 'anonymous';
-                              image.src =
-                                  this.resolvePath(url, responseImage.uri);
+                              image.src = resolvePath(url, responseImage.uri);
                               model.images[index] = image;
                               return imagePromise;
                             });
@@ -40,10 +41,8 @@ export default class GltfLoader {
       const bufferPromises: Promise<any>[] =
           (<{byteLength: number, uri: string}[]>modelResponse['buffers'])
               .map((responseBuffer, index) => {
-                return this
-                    .loadAsset(
-                        this.resolvePath(url, responseBuffer.uri),
-                        'arraybuffer')
+                return fetchResource(
+                           resolvePath(url, responseBuffer.uri), 'arraybuffer')
                     .then((arrayBuffer) => {
                       model.buffers[index] = arrayBuffer;
                     });
@@ -59,33 +58,5 @@ export default class GltfLoader {
         return model;
       });
     });
-  }
-
-  protected loadAsset(url: string, responseType?: XMLHttpRequestResponseType):
-      Promise<any> {
-    return new Promise(
-        (resolve: (model: Model) => void, reject: (error: any) => void) => {
-          const assetRequest = new XMLHttpRequest();
-          assetRequest.open('GET', url);
-          if (responseType) {
-            assetRequest.responseType = responseType;
-          }
-          assetRequest.addEventListener('load', () => {
-            resolve(assetRequest.response);
-          });
-          assetRequest.onerror = reject;
-          assetRequest.onabort = reject;
-          assetRequest.send();
-        });
-  }
-
-  protected resolvePath(basePath: string, relativePath: string): string {
-    const regex = /(.*\/)[^\/]*/;
-    const match = basePath.match(regex);
-    if (match) {
-      return match[1] + relativePath;
-    } else {
-      return relativePath;
-    }
   }
 }

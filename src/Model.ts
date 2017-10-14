@@ -70,7 +70,7 @@ export interface Primitive {
 export interface Node {
   mesh: number;
   name: string;
-  rotation: [number, number, number, number];
+  rotation: number[];
   }
 
 export interface Sampler {}

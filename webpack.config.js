@@ -7,5 +7,5 @@ module.exports = {
   resolve: {extensions: ['.tsx', '.ts', '.js']},
   output: {filename: 'main.js', path: path.resolve(__dirname, 'dist')},
   devtool: 'source-map',
-  devServer: {contentBase: './'}
+  devServer: {}
 };

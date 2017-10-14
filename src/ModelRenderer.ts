@@ -1,16 +1,24 @@
-import {mat2, vec2, vec3} from 'gl-matrix';
+import {mat2, mat4, vec2, vec3} from 'gl-matrix';
 
+import {CubeMap} from './CubeMap';
 import {ScalarAccessor, Vec2Accessor, Vec3Accessor} from './DataAccessor';
 import GlModelWrapper from './GlModelWrapper';
 import {Model, VertexSizes} from './Model'
-import ProgramInfo from './ProgramInfo';
+import ModelShader from './ModelShader';
 
 export default class ModelRenderer {
   private gl: WebGLRenderingContext;
-
+  private shader: ModelShader;
   private modelWrappers: GlModelWrapper[];
 
-  constructor(gl: WebGLRenderingContext) {
+  static create(
+      gl: WebGLRenderingContext, width: () => number, height: () => number) {
+    let renderer = new ModelRenderer(gl);
+    renderer.shader = ModelShader.create(gl, width, height);
+    return renderer;
+  }
+
+  private constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
     this.modelWrappers = [];
   }
@@ -19,79 +27,89 @@ export default class ModelRenderer {
     return this.modelWrappers.push(new GlModelWrapper(model));
   }
 
-  renderModel(id: number, programInfo: ProgramInfo) {
+  renderModel(
+      id: number, projectionMatrix: mat4, modelViewMatrix: mat4,
+      cubeMap: CubeMap) {
     const modelWrapper = this.modelWrappers[id];
     this.initBuffers(modelWrapper);
     this.initTextures(modelWrapper);
     this.initTangents(modelWrapper);
 
     if (modelWrapper.buffersInitialized) {
-      const gl = this.gl;
+      const shader = this.shader;
+      shader.activate();
+
+      shader.setProjectionMatrix(projectionMatrix);
+
       const model = modelWrapper.model;
 
-      model.meshes.forEach((mesh, meshIndex) => {
-        mesh.primitives.forEach((primitive, primitiveIndex) => {
+      model.nodes.forEach((node) => {
+        const meshIndex = node.mesh;
+        const mesh = model.meshes[meshIndex];
 
+        let primitiveViewMatrix = mat4.create();
+
+        let identity = mat4.create();
+        mat4.identity(identity);
+        mat4.rotate(
+            primitiveViewMatrix, identity, node.rotation[3], node.rotation);
+        mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
+
+        shader.setModelViewMatrix(primitiveViewMatrix);
+
+        mesh.primitives.forEach((primitive, primitiveIndex) => {
           // Position
           this.bindModelVertexAttribute(
-              programInfo.attributes.vertexPosition,
+              shader.bindVertexPosition.bind(shader),
               primitive.attributes.POSITION, modelWrapper);
 
           // Normal
           this.bindModelVertexAttribute(
-              programInfo.attributes.vertexNormal, primitive.attributes.NORMAL,
+              shader.bindVertexNormal.bind(shader), primitive.attributes.NORMAL,
               modelWrapper);
 
           // Texture
           this.bindModelVertexAttribute(
-              programInfo.attributes.textureCoord,
+              shader.bindVertexTexCoord.bind(shader),
               primitive.attributes.TEXCOORD_0, modelWrapper);
 
           // Texture Tangents
           const tangents = modelWrapper.tangents[meshIndex][primitiveIndex];
-          const tangentAttribute = programInfo.attributes.vertexTangent;
-          gl.bindBuffer(gl.ARRAY_BUFFER, tangents);
-          gl.vertexAttribPointer(
-              tangentAttribute, 3, WebGLRenderingContext.FLOAT, true, 0, 0);
-          gl.enableVertexAttribArray(tangentAttribute);
+          shader.bindVertexTangent(tangents, WebGLRenderingContext.FLOAT, 0, 0);
 
           // Texture BiTangents
           const biTangents = modelWrapper.biTangents[meshIndex][primitiveIndex];
-          const biTangentAttribute = programInfo.attributes.vertexBiTangent;
-          gl.bindBuffer(gl.ARRAY_BUFFER, biTangents);
-          gl.vertexAttribPointer(
-              biTangentAttribute, 3, WebGLRenderingContext.FLOAT, true, 0, 0);
-          gl.enableVertexAttribArray(biTangentAttribute);
+          shader.bindVertexBiTangent(
+              biTangents, WebGLRenderingContext.FLOAT, 0, 0);
 
           // Textures
           const material = model.materials[primitive.material];
-          const materialBaseTex =
-              material.pbrMetallicRoughness.baseColorTexture;
-          if (materialBaseTex) {
-            let baseTexture = modelWrapper.textures[materialBaseTex.index];
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, baseTexture);
-            gl.uniform1i(programInfo.uniforms.samplers.baseSampler, 0);
-            }
-          const materialNormalTex = material.normalTexture;
-          if (materialNormalTex) {
-            let normalTexture = modelWrapper.textures[materialNormalTex.index];
-            gl.activeTexture(gl.TEXTURE1);
-            gl.bindTexture(gl.TEXTURE_2D, normalTexture);
-            gl.uniform1i(programInfo.uniforms.samplers.normalSampler, 1);
-            }
+          shader.bindBaseTexture(
+              modelWrapper.textures[material.pbrMetallicRoughness
+                                        .baseColorTexture.index]);
+          shader.bindMetallicRoughnessTexture(
+              modelWrapper.textures[material.pbrMetallicRoughness
+                                        .metallicRoughnessTexture.index]);
+          shader.bindNormalTexture(
+              modelWrapper.textures[material.normalTexture.index]);
+          shader.bindEmissiveTexture(
+              modelWrapper.textures[material.emissiveTexture.index]);
+          shader.setEmissiveFactor(material.emissiveFactor);
+
+          // Cubemap
+          shader.bindEnvironmentTexture(cubeMap);
 
           // Indices
           const indicesAccessor = model.accessors[primitive.indices];
           const indicesBufferView =
               model.bufferViews[indicesAccessor.bufferView];
-          gl.bindBuffer(
-              gl.ELEMENT_ARRAY_BUFFER,
-              modelWrapper.buffers[indicesBufferView.buffer].element);
+          shader.setIndices(
+              modelWrapper.buffers[indicesBufferView.buffer].element,
+              indicesAccessor.componentType, indicesAccessor.count,
+              (indicesAccessor.byteOffset || 0) +
+                  (indicesBufferView.byteOffset || 0));
 
-          gl.drawElements(
-              primitive.mode || gl.TRIANGLES, indicesAccessor.count,
-              indicesAccessor.componentType, indicesBufferView.byteOffset || 0);
+          shader.draw(primitive.mode || WebGLRenderingContext.TRIANGLES);
         });
       });
     }
@@ -287,8 +305,10 @@ export default class ModelRenderer {
   }
 
   private bindModelVertexAttribute(
-      attribute: number, accessorIndex: number, modelWrapper: GlModelWrapper) {
-    const gl = this.gl;
+      bindFunction:
+          (buffer: WebGLBuffer, componentType: number, byteStride: number,
+           byteOffset: number) => void,
+      accessorIndex: number, modelWrapper: GlModelWrapper) {
     const accessor = modelWrapper.model.accessors[accessorIndex];
     const bufferView = modelWrapper.model.bufferViews[accessor.bufferView];
     const size = VertexSizes.get(accessor.type);
@@ -297,13 +317,10 @@ export default class ModelRenderer {
       throw 'Tried to bind non vertex to vertex attribute!';
     }
 
-    gl.bindBuffer(
-        gl.ARRAY_BUFFER, modelWrapper.buffers[bufferView.buffer].array);
-    gl.vertexAttribPointer(
-        attribute, size, accessor.componentType, false,
+    bindFunction(
+        modelWrapper.buffers[bufferView.buffer].array, accessor.componentType,
         bufferView.byteStride || 0,
         (accessor.byteOffset || 0) + (bufferView.byteOffset || 0));
-    gl.enableVertexAttribArray(attribute);
   }
   }
 
