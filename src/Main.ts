@@ -18,8 +18,16 @@ const FOV = 45 * Math.PI / 180;
 
 var then = 0;
 var squareRotation = 0.0;
-let xRot: number|undefined = undefined;
-let yRot: number|undefined = undefined;
+let xRot: number = Math.PI;
+let yRot: number = Math.PI / 2;
+let xVel: number = 0;
+let yVel: number = 0;
+
+let xCurrent: number = 0;
+let yCurrent: number = 0;
+let xLastFrame: number = 0;
+let yLastFrame: number = 0;
+
 let zoom: number = 2;
 
 function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
@@ -46,15 +54,26 @@ function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
   mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -Math.pow(2, zoom)]);
 
   const modelViewMatrix = mat4.create();
-  if (xRot === undefined || yRot === undefined) {
-    mat4.rotate(modelViewMatrix, viewMatrix, squareRotation, [0, 0, 1]);
-
-    mat4.rotate(
-        modelViewMatrix, modelViewMatrix, squareRotation * 0.7, [0, 1, 0]);
+  if (dragging) {
+    xVel = ((xCurrent - xLastFrame) / gl.canvas.clientWidth);
+    yVel = ((yCurrent - yLastFrame) / gl.canvas.clientHeight);
+    xLastFrame = xCurrent;
+    yLastFrame = yCurrent;
   } else {
-    mat4.rotate(modelViewMatrix, viewMatrix, yRot, [0, 1, 0]);
-    mat4.rotate(modelViewMatrix, modelViewMatrix, xRot, [1, 0, 0]);
+    xVel /= 1.1;
+    yVel /= 1.1;
   };
+  xRot -= xVel;
+  yRot += yVel;
+
+  if (yRot > Math.PI) {
+    yRot = Math.PI;
+  } else if (yRot < 0) {
+    yRot = 0;
+  }
+
+  mat4.rotate(modelViewMatrix, viewMatrix, yRot, [1, 0, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, xRot, [0, 0, 1]);
 
   gl.clearColor(1.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -125,14 +144,28 @@ function main() {
 document.body.onload = main;
 
 const canvas = document.getElementsByTagName('canvas')[0];
-canvas.addEventListener('mousemove', (event: MouseEvent) => {
-  xRot = (event.x / canvas.width - 1.0) * 4.0;
-  yRot = (event.y / canvas.height - 1.0) * 4.0;
+canvas.style.cursor = 'grab';
+let dragging = false;
+canvas.addEventListener('mousedown', (event: MouseEvent) => {
+  dragging = true;
+  xCurrent = event.x;
+  xLastFrame = event.x;
+  yCurrent = event.y;
+  yLastFrame = event.y;
+  canvas.style.cursor = 'grabbing';
 });
+let endDrag = () => {
+  dragging = false;
+  canvas.style.cursor = 'grab';
+};
+canvas.addEventListener('mouseup', endDrag);
+canvas.addEventListener('mouseout', endDrag);
 
-canvas.addEventListener('mouseout', () => {
-  xRot = undefined;
-  yRot = undefined;
+canvas.addEventListener('mousemove', (event: MouseEvent) => {
+  if (dragging) {
+    xCurrent = event.x;
+    yCurrent = event.y;
+  }
 });
 
 canvas.addEventListener('mousewheel', (event: WheelEvent) => {

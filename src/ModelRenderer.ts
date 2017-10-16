@@ -47,6 +47,11 @@ export default class ModelRenderer {
         const meshIndex = node.mesh;
         const mesh = model.meshes[meshIndex];
 
+        /*
+        This code allows primitives to orient themselves to a scene. It does not
+        seem useful yet so I'm commenting it out in favor of using the raw model
+        view matrix.
+
         let primitiveViewMatrix = mat4.create();
 
         let identity = mat4.create();
@@ -54,8 +59,9 @@ export default class ModelRenderer {
         mat4.rotate(
             primitiveViewMatrix, identity, node.rotation[3], node.rotation);
         mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
+        */
 
-        shader.setModelViewMatrix(primitiveViewMatrix);
+        shader.setModelViewMatrix(modelViewMatrix);
 
         mesh.primitives.forEach((primitive, primitiveIndex) => {
           // Position
