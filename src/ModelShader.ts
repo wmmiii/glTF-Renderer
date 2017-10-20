@@ -76,6 +76,7 @@ void main(void) {
   highp vec4 brdf = texture2D(uBrdfSampler, vec2(dot(-vFromCamera, normal), 1.0 - roughness));
 
   highp vec3 refVec = vFromCamera - 2.0 * (normal * dot(vFromCamera, normal));
+  refVec *= vec3(1.0, 1.0, -1.0);
   highp vec3 diffLight = textureCube(uEnvironmentSampler, normalize(refVec), 10.0).rgb;
   highp vec3 specLight = textureCube(uEnvironmentSampler, normalize(refVec), 0.0).rgb;
 
@@ -88,6 +89,7 @@ void main(void) {
   emissiveCol *= uEmissiveFactor;
 
   highp vec3 finalColor = (diffCol * diffLight) + (specLight * (specCol * brdf.x + brdf.y)) + emissiveCol;
+  finalColor *= 1.2;
 
   gl_FragColor = vec4(finalColor, 1.0);
 }
@@ -130,7 +132,7 @@ export default class ModelShader extends ShaderProgram {
     shader.bindLocations();
 
     const brdfImage = new Image();
-    brdfImage.src = 'dist/brdf.png';
+    brdfImage.src = 'images/brdf.png';
     shader.brdfTexture =
         createTexture(gl, brdfImage, [1.0, 0.0, 0.0, 1.0], false);
     return shader;

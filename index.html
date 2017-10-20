@@ -2,23 +2,79 @@
 <html>
 
 <head>
-    <title>glTF Renderer</title>
-    <style>
-        html,
-        body,
-        canvas {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            padding: 0;
-            width: 100%;
-        }
-    </style>
+  <title>glTF Renderer</title>
+  <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+  <style>
+    html,
+    body,
+    canvas {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      padding: 0;
+      width: 100%;
+    }
+
+    #attribution {
+      background-color: #222222;
+      border-bottom-right-radius: 5px;
+      box-shadow: inset -5px -5px 5px -5px rgba(0, 0, 0, 0.8);
+      color: #ffffff;
+      left: 0;
+      padding: 10px;
+      pointer-events: none;
+      position: fixed;
+      top: 0;
+    }
+
+    #attribution a {
+      pointer-events: all;
+    }
+
+    #attribution a:active,
+    #attribution a:hover,
+    #attribution a:visited {
+      color: #ffffff;
+    }
+
+    #attribution ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #attribution li {
+      margin: 5px 0;
+    }
+
+    #attribution li.large {
+      font-size: 16px;
+    }
+  </style>
 </head>
 
 <body>
-    <canvas id="glCanvas" width="1280" height="960"></canvas>
-    <script src="dist/main.js"></script>
+  <div id="attribution">
+    <ul>
+      <li class="large">
+        <a href="https://github.com/wmmiii/glTF-Renderer">glTF Renderer</a>
+        by William Martin
+      </li>
+      <li>
+        <a href="https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet">Damaged Helmet</a>
+        by
+        <a href="https://sketchfab.com/theblueturtle_">theblueturtle_</a>
+      </li>
+      <li>
+        Skyboxes by
+        <a href="http://www.humus.name/index.php?page=Textures&start=0">Humus</a>
+      </li>
+    </ul>
+  </div>
+  <canvas id="glCanvas" width="1280" height="960"></canvas>
+  <script src="build/main.js"></script>
 </body>
 
 </html>

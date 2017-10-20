@@ -5,9 +5,9 @@ import GltfLoader from './GltfLoader';
 import ModelRenderer from './ModelRenderer';
 import {fetchImage} from './ResourceFetcher';
 import {createSkyBox} from './SkyBoxCreator';
-import SkyBoxRenderer from './SkyBoxRenderer';
+import SkyBoxShader from './SkyBoxShader';
 
-let skyBoxRenderer: SkyBoxRenderer;
+let skyBoxShader: SkyBoxShader;
 let modelRenderer: ModelRenderer;
 let modelLoader: GltfLoader;
 
@@ -55,8 +55,8 @@ function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
 
   const modelViewMatrix = mat4.create();
   if (dragging) {
-    xVel = ((xCurrent - xLastFrame) / gl.canvas.clientWidth);
-    yVel = ((yCurrent - yLastFrame) / gl.canvas.clientHeight);
+    xVel = ((xCurrent - xLastFrame) / (gl.canvas.clientWidth / 2.0));
+    yVel = ((yCurrent - yLastFrame) / (gl.canvas.clientHeight / 2.0));
     xLastFrame = xCurrent;
     yLastFrame = yCurrent;
   } else {
@@ -78,9 +78,9 @@ function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
   gl.clearColor(1.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   gl.disable(gl.DEPTH_TEST);
-  skyBoxRenderer.setFov(FOV);
-  skyBoxRenderer.setAspect(aspectRatio);
-  skyBoxRenderer.renderSkyBox(viewMatrix);
+  skyBoxShader.setFov(FOV);
+  skyBoxShader.setAspect(aspectRatio);
+  skyBoxShader.draw(viewMatrix);
 
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
@@ -102,8 +102,8 @@ function main() {
   modelRenderer =
       ModelRenderer.create(gl, () => canvas.width, () => canvas.height);
 
-  skyBoxRenderer =
-      SkyBoxRenderer.create(gl, () => canvas.width, () => canvas.height);
+  skyBoxShader =
+      SkyBoxShader.create(gl, () => canvas.width, () => canvas.height);
 
   // const normalTest =
   // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf';
@@ -119,13 +119,13 @@ function main() {
         modelRenderer.registerModel(model);
       })
       .then(() => {
-        return fetchImage('dist/SkyBox.jpg');
+        return fetchImage('images/Yokohama.jpg');
       })
       .then((data: HTMLImageElement) => {
         return createSkyBox(gl, data);
       })
       .then((cubeMap: CubeMap) => {
-        skyBoxRenderer.setCubeMap(cubeMap);
+        skyBoxShader.bindSkyBoxTexture(cubeMap);
         let render = (now: number) => {
           now *= 0.001;
           const deltaTime = now - then;

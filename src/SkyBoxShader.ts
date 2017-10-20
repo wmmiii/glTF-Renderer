@@ -1,6 +1,5 @@
 import {mat4} from 'gl-matrix';
 
-import {CubeMap} from './CubeMap';
 import ShaderProgram from './ShaderProgram';
 
 
@@ -31,38 +30,7 @@ void main(void) {
 }
 `;
 
-export default class SkyBoxRenderer {
-  private skyBoxShader: SkyBoxShader;
-
-  static create(
-      gl: WebGLRenderingContext, width: () => number, height: () => number) {
-    let skyBoxShader = SkyBoxShader.create(gl, width, height);
-    let skyBoxRenderer = new SkyBoxRenderer(skyBoxShader);
-    return skyBoxRenderer;
-  }
-
-  constructor(skyBoxShader: SkyBoxShader) {
-    this.skyBoxShader = skyBoxShader;
-  };
-
-  setCubeMap(cubeMap: CubeMap) {
-    this.skyBoxShader.bindSkyBoxTexture(cubeMap);
-  };
-
-  setFov(fov: number) {
-    this.skyBoxShader.setFov(fov);
-  };
-
-  setAspect(ratio: number) {
-    this.skyBoxShader.setAspect(ratio);
-  };
-
-  renderSkyBox(modelView: mat4) {
-    this.skyBoxShader.draw(modelView);
-  };
-};
-
-class SkyBoxShader extends ShaderProgram {
+export default class SkyBoxShader extends ShaderProgram {
   private indicesBuffer: WebGLBuffer;
   private positionsBuffer: WebGLBuffer;
   private skyBoxTexture: WebGLTexture;

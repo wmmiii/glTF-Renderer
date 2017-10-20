@@ -25,14 +25,22 @@ All models referenced in this project have been published thanks to Khronos Grou
 ## TODO
 
 ### General
-- [ ] Move rendering specific code out of Main.ts.
-- [ ] Move shader code out of Main.ts.
 - [ ] Re-architect rendering pipeline.
 - [ ] Get Webpack watching and working properly.
 - [ ] Support VR displays.
+- [ ] Use uniform and attribute setters.
+- [x] Move rendering specific code out of Main.ts.
+- [x] Move shader code out of Main.ts.
 
 ### Rendering
-- [ ] Create cube-maps.
-- [ ] Add proper diffuse lighting.
-- [ ] Add reflectance.
-- [ ] Obey metalness properties.
+- [ ] Add screen space effects.
+- [x] Create cube-maps.
+- [x] Add proper diffuse lighting.
+- [x] Add reflectance.
+- [x] Obey metalness properties.
+
+### UI
+- [ ] Implement some sort of UI.
+- [ ] Dynamically change model.
+- [ ] Dynamically change skybox.
+- [ ] Turn on and off various channels.

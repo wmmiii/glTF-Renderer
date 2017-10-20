@@ -1,9 +1,7 @@
-export interface CubemapData { images: HTMLImageElement[] }
-
 export type CubeMap = WebGLTexture;
 
 export function loadCubemapData(
-    gl: WebGLRenderingContext, faceUrls: string[]): Promise<CubemapData> {
+    gl: WebGLRenderingContext, faceUrls: string[]): Promise<CubeMap> {
   let images: HTMLImageElement[] = [];
   let imagePromises: Promise<any>[] = faceUrls.map((url, index) => {
     const image = new Image();
@@ -17,12 +15,12 @@ export function loadCubemapData(
   });
 
   return Promise.all(imagePromises).then(() => {
-    const newTexture = gl.createTexture();
-    if (!newTexture) {
+    const cubeMap = gl.createTexture();
+    if (!cubeMap) {
       throw `Could not create texture for cubemap!`;
     }
 
-    gl.bindTexture(gl.TEXTURE_CUBE_MAP, newTexture);
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap);
     images.forEach((image, index) => {
       gl.texImage2D(
           gl.TEXTURE_CUBE_MAP_POSITIVE_X + index, 0, gl.RGBA, gl.RGBA,
@@ -35,6 +33,6 @@ export function loadCubemapData(
         gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 
-    return {texture: newTexture, images: images};
+    return cubeMap;
   });
 };
