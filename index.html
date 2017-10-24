@@ -87,40 +87,13 @@
   </style>
 
   <!-- Dependencies -->
-  <script src="./node_modules/react/umd/react.development.js"></script>
-  <script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
 </head>
 
 <body>
   <div id="app">
   </div>
-  <!-- <div id="attribution">
-    <ul>
-      <li class="large">
-        <a href="https://github.com/wmmiii/glTF-Renderer">glTF Renderer</a>
-        by William Martin
-      </li>
-      <li>
-        <a href="https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet">Damaged Helmet</a>
-        by
-        <a href="https://sketchfab.com/theblueturtle_">theblueturtle_</a>
-      </li>
-      <li>
-        Skyboxes by
-        <a href="http://www.humus.name/index.php?page=Textures&start=0">Humus</a>
-        and Hipshot
-      </li>
-    </ul>
-  </div> -->
-  <!-- <div id="options">
-    <label for="sky-box-select">Sky Box</label>
-    <select id="sky-box-select">
-      <option value="images/NissiBeach.jpg">Beach</option>
-      <option value="images/StormyDays.jpg">Clouds</option>
-      <option value="images/FootballField.jpg">Snowy</option>
-      <option value="images/Yokohama.jpg" selected>Yokohama</option>
-    </select>
-  </div> -->
   <canvas id="glCanvas" width="1280" height="960"></canvas>
   <script src="build/main.js"></script>
 </body>

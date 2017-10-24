@@ -1,19 +1,19 @@
-import * as React from "react";
+import * as React from 'react';
 
-import { ModelDetail, SkyBoxDetail } from "./Details";
+import { ModelDetail, SkyBoxDetail } from './Details';
 
 interface OptionsProps {
-  models: {
+  models: Array<{
     title: string,
     url: string
-  }[];
+  }>;
   defaultModel: number;
   onModelChange: (model: ModelDetail) => void;
 
-  skyBoxes: {
+  skyBoxes: Array<{
     title: string,
     url: string
-  }[];
+  }>;
   defaultSkyBox: number;
   onSkyBoxChange: (skyBox: SkyBoxDetail) => void;
 }
@@ -43,13 +43,12 @@ export default class Options extends React.Component<OptionsProps> {
   }
 }
 
-
 interface SelectorProps<T> {
   default: number;
-  options: {
+  options: Array<{
     key: string,
     value: T
-  }[];
+  }>;
   onChange: (option: T) => void;
 }
 
@@ -69,13 +68,13 @@ class Selector<T> extends
   render() {
     return <select value={this.state.value} onChange={this.handleSelectChanged}>
       {this.props.options.map((option, index) => {
-        return <option key={option.key} value={index}>{option.key}</option>
+        return <option key={option.key} value={index}>{option.key}</option>;
       })};
       </select>;
   }
 
   private handleSelectChanged(event: React.FormEvent<HTMLSelectElement>): void {
-    const index = parseInt(event.currentTarget.value);
+    const index = parseInt(event.currentTarget.value, 10);
     this.setState({
       value: index
     });

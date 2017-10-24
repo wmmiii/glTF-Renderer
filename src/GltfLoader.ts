@@ -7,24 +7,24 @@ export default class GltfLoader {
     return fetchResource(url).then((response: any) => {
       const modelResponse = JSON.parse(response);
 
-      let model: Model = {
-        accessors: modelResponse['accessors'],
-        asset: modelResponse['asset'],
-        bufferViews: modelResponse['bufferViews'],
-        buffers: <ArrayBuffer[]>[],
-        images: <HTMLImageElement[]>[],
-        materials: modelResponse['materials'],
-        meshes: modelResponse['meshes'],
-        nodes: modelResponse['nodes'],
-        samplers: modelResponse['samplers'],
-        scene: modelResponse['scene'],
-        scenes: modelResponse['scenes'],
-        textures: modelResponse['textures']
+      const model: Model = {
+        accessors: modelResponse.accessors,
+        asset: modelResponse.asset,
+        bufferViews: modelResponse.bufferViews,
+        buffers: [] as ArrayBuffer[],
+        images: [] as HTMLImageElement[],
+        materials: modelResponse.materials,
+        meshes: modelResponse.meshes,
+        nodes: modelResponse.nodes,
+        samplers: modelResponse.samplers,
+        scene: modelResponse.scene,
+        scenes: modelResponse.scenes,
+        textures: modelResponse.textures
       };
 
-      let imagePromises: Promise<any>[] = [];
-      if (modelResponse['images']) {
-        imagePromises = (<{uri: string}[]>modelResponse['images'])
+      let imagePromises: Array<Promise<any>> = [];
+      if (modelResponse.images) {
+        imagePromises = (modelResponse.images as Array<{uri: string}>)
                             .map((responseImage, index) => {
                               const image = new Image();
                               const imagePromise =
@@ -36,23 +36,23 @@ export default class GltfLoader {
                               model.images[index] = image;
                               return imagePromise;
                             });
-        }
+      }
 
-      const bufferPromises: Promise<any>[] =
-          (<{byteLength: number, uri: string}[]>modelResponse['buffers'])
+      const bufferPromises: Array<Promise<any>> =
+          (modelResponse.buffers as Array<{byteLength: number, uri: string}>)
               .map((responseBuffer, index) => {
-                return fetchResource(
-                           resolvePath(url, responseBuffer.uri), 'arraybuffer')
+                return fetchResource(resolvePath(url, responseBuffer.uri),
+                                     'arraybuffer')
                     .then((arrayBuffer) => {
                       model.buffers[index] = arrayBuffer;
                     });
               });
 
-      let pendingPromises: Promise<any>[] = [];
+      let pendingPromises: Array<Promise<any>> = [];
       pendingPromises = pendingPromises.concat(bufferPromises);
       if (waitForTextures) {
         pendingPromises = pendingPromises.concat(imagePromises);
-        }
+      }
 
       return Promise.all(pendingPromises).then(() => {
         return model;

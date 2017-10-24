@@ -1,9 +1,8 @@
 /*
  * Creates a shader program.
  */
-export function createShaderProgram(
-    gl: WebGLRenderingContext, vsSource: string,
-    fsSource: string): WebGLProgram|null {
+export function createShaderProgram(gl: WebGLRenderingContext, vsSource: string,
+                                    fsSource: string): WebGLProgram|null {
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
@@ -13,21 +12,20 @@ export function createShaderProgram(
   gl.linkProgram(shaderProgram);
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert(
-        'Could not initialize the shader program: ' +
-        gl.getProgramInfoLog(shaderProgram));
+    alert('Could not initialize the shader program: ' +
+          gl.getProgramInfoLog(shaderProgram));
     return null;
-    }
-
-  return shaderProgram;
   }
 
+  return shaderProgram;
+}
+
 /*
-* Creates a shader of the given type, uploads the source and
-* compiles it.
-*/
-function createShader(
-    gl: WebGLRenderingContext, type: number, source: string): WebGLShader|null {
+ * Creates a shader of the given type, uploads the source and
+ * compiles it.
+ */
+function createShader(gl: WebGLRenderingContext, type: number,
+                      source: string): WebGLShader|null {
   const shader = gl.createShader(type);
 
   gl.shaderSource(shader, source);
@@ -37,24 +35,23 @@ function createShader(
     alert('Could not compile the shader: ' + gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
-    }
-
-  return shader;
   }
 
-export function createTexture(
-    gl: WebGLRenderingContext, image: HTMLImageElement,
-    defaultValue: number[] = [0, 0, 0, 0],
-    mipMap: boolean = false): WebGLTexture {
+  return shader;
+}
+
+export function createTexture(gl: WebGLRenderingContext,
+                              image: HTMLImageElement,
+                              defaultValue: number[] = [0, 0, 0, 0],
+                              mipMap: boolean = false): WebGLTexture {
   const texture = gl.createTexture();
   if (!texture) {
-    throw `Could not create texture!`;
+    throw new Error(`Could not create texture!`);
   }
 
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(
-      gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-      new Uint8Array(defaultValue));
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array(defaultValue));
 
   image.onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -70,8 +67,9 @@ export function createTexture(
   };
 
   return texture;
-  }
+}
 
 function isPowerOf2(value: number): boolean {
-  return (value & (value - 1)) == 0;
+  // tslint:disable-next-line:no-bitwise
+  return (value & (value - 1)) === 0;
 }

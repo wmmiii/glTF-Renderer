@@ -4,13 +4,6 @@
  * per program that draws to a buffer.
  */
 export default abstract class ShaderProgram {
-  protected gl: WebGLRenderingContext;
-
-  protected shaderProgram: WebGLProgram;
-
-  private width: () => number;
-  private height: () => number;
-
   /*
    * Creates a WebGLProgram.
    */
@@ -29,14 +22,14 @@ export default abstract class ShaderProgram {
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
       return null;
-      }
+    }
 
     return shaderProgram;
   }
 
   /*
-  * Creates a WebGLShader of the type specified.
-  */
+   * Creates a WebGLShader of the type specified.
+   */
   protected static createShader(
       gl: WebGLRenderingContext, type: number, source: string): WebGLShader
       |null {
@@ -49,10 +42,17 @@ export default abstract class ShaderProgram {
       alert('Could not compile the shader: ' + gl.getShaderInfoLog(shader));
       gl.deleteShader(shader);
       return null;
-      }
+    }
 
     return shader;
   }
+
+  protected gl: WebGLRenderingContext;
+
+  protected shaderProgram: WebGLProgram;
+
+  private width: () => number;
+  private height: () => number;
 
   constructor(
       gl: WebGLRenderingContext, shaderProgram: WebGLProgram,
@@ -74,7 +74,7 @@ export default abstract class ShaderProgram {
     let location = this.gl.getAttribLocation(this.shaderProgram, symbol);
     if (location < 0) {
       throw `Could not find attribute "${symbol}" in shader program!`;
-      }
+    }
     return location;
   }
 
@@ -82,7 +82,7 @@ export default abstract class ShaderProgram {
     let location = this.gl.getUniformLocation(this.shaderProgram, symbol);
     if (location === null) {
       throw `Could not find uniform "${symbol}" in shader program!`;
-      }
+    }
     return location;
   }
 

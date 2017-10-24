@@ -12,11 +12,11 @@ export interface Model {
   materials: Material[];
   meshes: Mesh[];
   nodes: Node[];
-  samplers: Sampler[];
+  samplers: Array<{}>;
   scene: number;
   scenes: Scene[];
   textures: Texture[];
-  }
+}
 
 export interface Accessor {
   bufferView: number;
@@ -26,7 +26,7 @@ export interface Accessor {
   max: number[];
   min?: number[];
   type: DataType;
-  }
+}
 
 export interface BufferView {
   buffer: number;
@@ -34,12 +34,12 @@ export interface BufferView {
   byteOffset?: number;
   byteStride?: number;
   target: number;
-  }
+}
 
 export interface Buffer {
   byteLength: number;
   uri: string;
-  }
+}
 
 export interface Material {
   emissiveFactor?: [number, number, number];
@@ -51,39 +51,39 @@ export interface Material {
     baseColorTexture: TextureReference;
     metallicRoughnessTexture: TextureReference;
   };
-  }
+}
 
 export interface TextureReference { index: number; }
 
 export interface Mesh {
   name: string;
   primitives: Primitive[];
-  }
+}
 
 export interface Primitive {
   mode: number;
-  attributes: {NORMAL: number; POSITION: number; TEXCOORD_0: number;},
-      indices: number;
+  attributes: {NORMAL: number; POSITION: number; TEXCOORD_0: number; };
+  indices: number;
   material: number;
-  }
+}
 
 export interface Node {
   mesh: number;
   name: string;
   rotation: number[];
-  }
+}
 
 export interface Sampler {}
 
 export interface Scene {
   name: string;
   nodes: number[];
-  }
+}
 
 export interface Texture {
   sampler: number;
   source: number;
-  }
+}
 
 export const VertexSizes: Map<DataType, number> = new Map();
 VertexSizes.set('SCALAR', 1);

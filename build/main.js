@@ -2535,7 +2535,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             if (responseType) {
                 resourceRequest.responseType = responseType;
             }
-            ;
             resourceRequest.addEventListener('load', () => {
                 resolve(resourceRequest.response);
             });
@@ -2545,7 +2544,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         });
     }
     exports.fetchResource = fetchResource;
-    ;
     function fetchImage(url) {
         return new Promise((resolve, reject) => {
             const image = new Image();
@@ -2564,10 +2562,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         else {
             return relativePath;
         }
-        ;
     }
     exports.resolvePath = resolvePath;
-    ;
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -2601,8 +2597,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             return shaderProgram;
         }
         /*
-        * Creates a WebGLShader of the type specified.
-        */
+         * Creates a WebGLShader of the type specified.
+         */
         static createShader(gl, type, source) {
             const shader = gl.createShader(type);
             gl.shaderSource(shader, source);
@@ -2689,9 +2685,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     }
     exports.createShaderProgram = createShaderProgram;
     /*
-    * Creates a shader of the given type, uploads the source and
-    * compiles it.
-    */
+     * Creates a shader of the given type, uploads the source and
+     * compiles it.
+     */
     function createShader(gl, type, source) {
         const shader = gl.createShader(type);
         gl.shaderSource(shader, source);
@@ -2706,7 +2702,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     function createTexture(gl, image, defaultValue = [0, 0, 0, 0], mipMap = false) {
         const texture = gl.createTexture();
         if (!texture) {
-            throw `Could not create texture!`;
+            throw new Error(`Could not create texture!`);
         }
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(defaultValue));
@@ -2726,7 +2722,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     }
     exports.createTexture = createTexture;
     function isPowerOf2(value) {
-        return (value & (value - 1)) == 0;
+        // tslint:disable-next-line:no-bitwise
+        return (value & (value - 1)) === 0;
     }
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -2739,18 +2736,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(15), __webpack_require__(16), __webpack_require__(6), __webpack_require__(21), __webpack_require__(22), __webpack_require__(23)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, GltfLoader_1, ModelRenderer_1, ResourceFetcher_1, SkyBoxCreator_1, SkyBoxShader_1, App) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    let gl;
     let cubeMap;
     let skyBoxShader;
     let modelRenderer;
     let modelLoader;
     let currentModel = 0;
-    let loadedModels = {};
+    const loadedModels = {};
     // TODO: Make functions more generic and refactor into modules.
     // TODO: Add documentation comments on all functions, classes, and interfaces.
     const FOV = 45 * Math.PI / 180;
     let xRot = Math.PI;
-    let yRot = Math.PI / 2;
+    let yRot = Math.PI * 0.60;
     let xVel = 0;
     let yVel = 0;
     let xCurrent = 0;
@@ -2758,12 +2754,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     let xLastFrame = 0;
     let yLastFrame = 0;
     let zoom = 2;
+    let dragging = false;
     function drawScene(gl) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(1.0); // Clear everything
         gl.enable(gl.DEPTH_TEST); // Enable depth testing
         gl.depthFunc(gl.LEQUAL); // Near things obscure far things
         // Clear the canvas before we start drawing on it.
+        // tslint:disable-next-line:no-bitwise
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         const aspectRatio = gl.canvas.clientWidth / gl.canvas.clientHeight;
         const projectionMatrix = gl_matrix_1.mat4.create();
@@ -2784,7 +2782,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             xVel /= 1.1;
             yVel /= 1.1;
         }
-        ;
         xRot -= xVel;
         yRot += yVel;
         if (yRot > Math.PI) {
@@ -2807,26 +2804,50 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         gl.depthFunc(gl.LEQUAL);
         modelRenderer.renderModel(currentModel, projectionMatrix, modelViewMatrix, cubeMap);
     }
-    ;
+    function initApp(gl) {
+        App.initializeApp(models, 1, (modelUrl) => {
+            if (loadedModels[modelUrl] !== undefined) {
+                currentModel = loadedModels[modelUrl];
+            }
+            else {
+                modelLoader.loadGltf(modelUrl).then((model) => {
+                    loadedModels[modelUrl] =
+                        modelRenderer.registerModel(model);
+                    currentModel = loadedModels[modelUrl];
+                });
+            }
+        }, skyBoxes, 3, (skyBoxUrl) => {
+            return ResourceFetcher_1.fetchImage(skyBoxUrl)
+                .then((data) => {
+                return SkyBoxCreator_1.createSkyBox(gl, data);
+            })
+                .then((skyBox) => {
+                cubeMap = skyBox;
+                skyBoxShader.bindSkyBoxTexture(skyBox);
+            });
+        });
+    }
     /** Does what it says on the tin. */
     function main() {
         const canvas = document.getElementById('glCanvas');
+        initCanvas(canvas);
         // Initialize the GL context
         const canvasContext = canvas.getContext('webgl');
         if (canvasContext === null) {
             console.error('Unable to initialize GL context!');
             return;
         }
-        gl = canvasContext;
+        const gl = canvasContext;
+        initApp(gl);
         modelLoader = new GltfLoader_1.default();
         modelRenderer =
             ModelRenderer_1.default.create(gl, () => canvas.width, () => canvas.height);
         skyBoxShader =
             SkyBoxShader_1.default.create(gl, () => canvas.width, () => canvas.height);
-        const helmet = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
-        modelLoader.loadGltf(helmet)
+        const helmetUrl = models[1].url;
+        modelLoader.loadGltf(helmetUrl)
             .then((model) => {
-            loadedModels[helmet] = modelRenderer.registerModel(model);
+            loadedModels[helmetUrl] = modelRenderer.registerModel(model);
         })
             .then(() => {
             return ResourceFetcher_1.fetchImage('images/Yokohama.jpg');
@@ -2837,43 +2858,43 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             .then((skyBox) => {
             cubeMap = skyBox;
             skyBoxShader.bindSkyBoxTexture(skyBox);
-            let render = () => {
+            const render = () => {
                 drawScene(gl);
                 requestAnimationFrame(render);
             };
             requestAnimationFrame(render);
         });
     }
-    ;
-    const canvas = document.getElementsByTagName('canvas')[0];
-    let dragging = false;
-    canvas.addEventListener('mousedown', (event) => {
-        dragging = true;
-        xCurrent = event.x;
-        xLastFrame = event.x;
-        yCurrent = event.y;
-        yLastFrame = event.y;
-        canvas.classList.add('grabbing');
-    });
-    let endDrag = () => {
-        dragging = false;
-        canvas.classList.remove('grabbing');
-    };
-    canvas.addEventListener('mouseup', endDrag);
-    canvas.addEventListener('mouseout', endDrag);
-    canvas.addEventListener('mousemove', (event) => {
-        if (dragging) {
+    function initCanvas(canvas) {
+        canvas.addEventListener('mousedown', (event) => {
+            dragging = true;
             xCurrent = event.x;
+            xLastFrame = event.x;
             yCurrent = event.y;
-        }
-    });
-    canvas.addEventListener('mousewheel', (event) => {
-        zoom -= event.wheelDeltaY / 1000;
-    });
+            yLastFrame = event.y;
+            canvas.classList.add('grabbing');
+        });
+        const endDrag = () => {
+            dragging = false;
+            canvas.classList.remove('grabbing');
+        };
+        canvas.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('mouseout', endDrag);
+        canvas.addEventListener('mousemove', (event) => {
+            if (dragging) {
+                xCurrent = event.x;
+                yCurrent = event.y;
+            }
+        });
+        canvas.addEventListener('wheel', (event) => {
+            zoom += event.deltaY / 250;
+        });
+    }
     const models = [
         {
             title: 'Boom Box',
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBox/glTF/BoomBox.gltf',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+                'master/2.0/BoomBox/glTF/BoomBox.gltf',
             creator: {
                 name: 'Ryan Martin',
                 url: 'https://www.linkedin.com/in/ryan-c-martin-techartist/'
@@ -2881,16 +2902,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         },
         {
             title: 'Damaged Helmet',
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+                'master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
             creator: { name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_' }
         },
         {
             title: 'Barramundi Fish',
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+                'master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
         },
         {
             title: 'Water Bottle',
-            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF/WaterBottle.gltf',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+                'master/2.0/WaterBottle/glTF/WaterBottle.gltf',
             creator: {
                 name: 'Patrick Ryan',
                 url: 'https://www.linkedin.com/in/patrickcryan/'
@@ -2911,26 +2935,6 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         { title: 'Snowy', url: 'images/FootballField.jpg', creator: humus },
         { title: 'Yokohama', url: 'images/Yokohama.jpg', creator: humus }
     ];
-    App.initializeApp(models, 1, (modelUrl) => {
-        if (loadedModels[modelUrl] !== undefined) {
-            currentModel = loadedModels[modelUrl];
-        }
-        else {
-            modelLoader.loadGltf(modelUrl).then((model) => {
-                loadedModels[modelUrl] = modelRenderer.registerModel(model);
-                currentModel = loadedModels[modelUrl];
-            });
-        }
-    }, skyBoxes, 3, (skyBoxUrl) => {
-        return ResourceFetcher_1.fetchImage(skyBoxUrl)
-            .then((data) => {
-            return SkyBoxCreator_1.createSkyBox(gl, data);
-        })
-            .then((skyBox) => {
-            cubeMap = skyBox;
-            skyBoxShader.bindSkyBoxTexture(skyBox);
-        });
-    });
     document.body.onload = main;
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -6991,23 +6995,23 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         loadGltf(url, waitForTextures = true) {
             return ResourceFetcher_1.fetchResource(url).then((response) => {
                 const modelResponse = JSON.parse(response);
-                let model = {
-                    accessors: modelResponse['accessors'],
-                    asset: modelResponse['asset'],
-                    bufferViews: modelResponse['bufferViews'],
+                const model = {
+                    accessors: modelResponse.accessors,
+                    asset: modelResponse.asset,
+                    bufferViews: modelResponse.bufferViews,
                     buffers: [],
                     images: [],
-                    materials: modelResponse['materials'],
-                    meshes: modelResponse['meshes'],
-                    nodes: modelResponse['nodes'],
-                    samplers: modelResponse['samplers'],
-                    scene: modelResponse['scene'],
-                    scenes: modelResponse['scenes'],
-                    textures: modelResponse['textures']
+                    materials: modelResponse.materials,
+                    meshes: modelResponse.meshes,
+                    nodes: modelResponse.nodes,
+                    samplers: modelResponse.samplers,
+                    scene: modelResponse.scene,
+                    scenes: modelResponse.scenes,
+                    textures: modelResponse.textures
                 };
                 let imagePromises = [];
-                if (modelResponse['images']) {
-                    imagePromises = modelResponse['images']
+                if (modelResponse.images) {
+                    imagePromises = modelResponse.images
                         .map((responseImage, index) => {
                         const image = new Image();
                         const imagePromise = new Promise((resolve) => {
@@ -7019,7 +7023,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                         return imagePromise;
                     });
                 }
-                const bufferPromises = modelResponse['buffers']
+                const bufferPromises = modelResponse.buffers
                     .map((responseBuffer, index) => {
                     return ResourceFetcher_1.fetchResource(ResourceFetcher_1.resolvePath(url, responseBuffer.uri), 'arraybuffer')
                         .then((arrayBuffer) => {
@@ -7051,7 +7055,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     Object.defineProperty(exports, "__esModule", { value: true });
     class ModelRenderer {
         static create(gl, width, height) {
-            let renderer = new ModelRenderer(gl);
+            const renderer = new ModelRenderer(gl);
             renderer.shader = ModelShader_1.default.create(gl, width, height);
             return renderer;
         }
@@ -7060,7 +7064,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             this.modelWrappers = [];
             const emissiveDefault = gl.createTexture();
             if (emissiveDefault === null) {
-                throw 'Could not create default emissive texture!';
+                throw new Error('Could not create default emissive texture!');
             }
             this.emissiveDefault = emissiveDefault;
             gl.bindTexture(gl.TEXTURE_2D, this.emissiveDefault);
@@ -7068,7 +7072,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             this.emissiveFactorDefault = [0, 0, 0];
             const normalDefault = gl.createTexture();
             if (normalDefault === null) {
-                throw 'Could not create default emissive texture!';
+                throw new Error('Could not create default emissive texture!');
             }
             this.normalDefault = normalDefault;
             gl.bindTexture(gl.TEXTURE_2D, this.normalDefault);
@@ -7101,7 +7105,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                     gl_matrix_1.vec3.negate(shift, modelWrapper.center);
                     gl_matrix_1.mat4.translate(primitiveViewMatrix, primitiveViewMatrix, shift);
                     if (node.rotation) {
-                        let identity = gl_matrix_1.mat4.create();
+                        const identity = gl_matrix_1.mat4.create();
                         gl_matrix_1.mat4.identity(identity);
                         gl_matrix_1.mat4.rotate(primitiveViewMatrix, identity, node.rotation[3], node.rotation);
                     }
@@ -7163,13 +7167,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                 model.buffers.forEach((buffer, index) => {
                     const newArray = gl.createBuffer();
                     if (!newArray) {
-                        throw `Could not create array buffer ${index} for model ${modelWrapper.model.asset.name}!`;
+                        throw new Error(`Could not create array buffer ${index} for model ${modelWrapper.model.asset.name}!`);
                     }
                     gl.bindBuffer(gl.ARRAY_BUFFER, newArray);
                     gl.bufferData(gl.ARRAY_BUFFER, buffer, gl.STATIC_DRAW);
                     const newElement = gl.createBuffer();
                     if (!newElement) {
-                        throw `Could not create element buffer ${index} for model ${modelWrapper.model.asset.name}!`;
+                        throw new Error(`Could not create element buffer ${index} for model ${modelWrapper.model.asset.name}!`);
                     }
                     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, newElement);
                     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, buffer, gl.STATIC_DRAW);
@@ -7185,7 +7189,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                 model.images.forEach((image, index) => {
                     const newTexture = gl.createTexture();
                     if (!newTexture) {
-                        throw `Could not create texture ${index} for model ${modelWrapper.model.asset.name}!`;
+                        throw new Error(`Could not create texture ${index} for model ${modelWrapper.model.asset.name}!`);
                     }
                     gl.bindTexture(gl.TEXTURE_2D, newTexture);
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -7203,7 +7207,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             }
         }
         isPowerOf2(value) {
-            return (value & (value - 1)) == 0;
+            // tslint:disable-next-line:no-bitwise
+            return (value & (value - 1)) === 0;
         }
         // TODO: Move this functionality into a model initializer.
         initTangents(modelWrapper) {
@@ -7217,7 +7222,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                 let minZ = Number.MAX_VALUE;
                 model.meshes.forEach((mesh, meshIndex) => {
                     mesh.primitives.forEach((primitive, primitiveIndex) => {
-                        if (model.materials[primitive.material].normalTexture != undefined) {
+                        if (model.materials[primitive.material].normalTexture !== undefined) {
                             const indices = getScalarAccessor(model, primitive.indices);
                             const positions = getVec3Accessor(model, primitive.attributes.POSITION);
                             const uvs = getVec2Accessor(model, primitive.attributes.TEXCOORD_0);
@@ -7235,16 +7240,16 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                                 const uv2 = uvs.get(i2);
                                 const uv3 = uvs.get(i3);
                                 // Find two edges of the triangle; A and B.
-                                let aUv = gl_matrix_1.vec2.create();
+                                const aUv = gl_matrix_1.vec2.create();
                                 gl_matrix_1.vec2.sub(aUv, uv2, uv1);
-                                let bUv = gl_matrix_1.vec2.create();
+                                const bUv = gl_matrix_1.vec2.create();
                                 gl_matrix_1.vec2.sub(bUv, uv3, uv1);
                                 // Find U and V as represented by A and B.
-                                let triSpace = gl_matrix_1.mat2.fromValues(aUv[0], aUv[1], bUv[0], bUv[1]);
+                                const triSpace = gl_matrix_1.mat2.fromValues(aUv[0], aUv[1], bUv[0], bUv[1]);
                                 gl_matrix_1.mat2.invert(triSpace, triSpace);
-                                let xTri = gl_matrix_1.vec2.fromValues(1, 0);
+                                const xTri = gl_matrix_1.vec2.fromValues(1, 0);
                                 gl_matrix_1.vec2.transformMat2(xTri, xTri, triSpace);
-                                let yTri = gl_matrix_1.vec2.fromValues(0, 1);
+                                const yTri = gl_matrix_1.vec2.fromValues(0, 1);
                                 gl_matrix_1.vec2.transformMat2(yTri, yTri, triSpace);
                                 // Get model coordinates of triangle.
                                 const m1 = positions.get(i1);
@@ -7257,9 +7262,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                                 minY = Math.min(m1[1], m2[1], m3[1], minY);
                                 minZ = Math.min(m1[2], m2[2], m3[2], minZ);
                                 // Find A and B in model space.
-                                let aM = gl_matrix_1.vec3.create();
+                                const aM = gl_matrix_1.vec3.create();
                                 gl_matrix_1.vec3.sub(aM, m2, m1);
-                                let bM = gl_matrix_1.vec3.create();
+                                const bM = gl_matrix_1.vec3.create();
                                 gl_matrix_1.vec3.sub(bM, m3, m1);
                                 // Find T and B in model space.
                                 // T = xTri.x * aM + xTri.y * bM
@@ -7287,13 +7292,13 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tangentBuffer);
                             this.gl.bufferData(this.gl.ARRAY_BUFFER, tangents, this.gl.STATIC_DRAW);
                             if (!tangentBuffer) {
-                                throw `Could not create tangent buffer (mesh ${meshIndex}, primitive ${primitiveIndex}) for model ${modelWrapper.model.asset.name}!`;
+                                throw new Error(`Could not create tangent buffer (mesh ${meshIndex}, primitive ${primitiveIndex}) for model ${modelWrapper.model.asset.name}!`);
                             }
                             const biTangentBuffer = this.gl.createBuffer();
                             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, biTangentBuffer);
                             this.gl.bufferData(this.gl.ARRAY_BUFFER, biTangents, this.gl.STATIC_DRAW);
                             if (!biTangentBuffer) {
-                                throw `Could not create bitangent buffer (mesh ${meshIndex}, primitive ${primitiveIndex}) for model ${modelWrapper.model.asset.name}!`;
+                                throw new Error(`Could not create bitangent buffer (mesh ${meshIndex}, primitive ${primitiveIndex}) for model ${modelWrapper.model.asset.name}!`);
                             }
                             if (!modelWrapper.tangents[meshIndex]) {
                                 modelWrapper.tangents[meshIndex] = [];
@@ -7317,7 +7322,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             const bufferView = modelWrapper.model.bufferViews[accessor.bufferView];
             const size = Model_1.VertexSizes.get(accessor.type);
             if (!size) {
-                throw 'Tried to bind non vertex to vertex attribute!';
+                throw new Error('Tried to bind non vertex to vertex attribute!');
             }
             bindFunction(modelWrapper.buffers[bufferView.buffer].array, accessor.componentType, bufferView.byteStride || 0, (accessor.byteOffset || 0) + (bufferView.byteOffset || 0));
         }
@@ -7340,14 +7345,14 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         const view = model.bufferViews[accessor.bufferView];
         const buffer = model.buffers[view.buffer];
         return {
-            buffer: buffer,
+            buffer,
             componentType: accessor.componentType,
             count: accessor.count,
             offset: (accessor.byteOffset || 0) + (view.byteOffset || 0)
         };
     }
     function addVec3(accessor, index, value) {
-        let existingValue = accessor.get(index);
+        const existingValue = accessor.get(index);
         gl_matrix_1.vec3.add(existingValue, existingValue, value);
         accessor.set(index, existingValue);
     }
@@ -7600,30 +7605,40 @@ uniform sampler2D uBrdfSampler;
 uniform highp vec3 uEmissiveFactor;
 
 void main(void) {
-  highp vec4 normalOriginal = vec4(normalize(texture2D(uNormalSampler, vTextureCoord).xyz * 2.0 - vec3(1.0, 1.0, 1.0)), 1.0);
-  highp mat4 normalTransform = mat4(vec4(normalize(vTangent), 0), vec4(normalize(vBiTangent), 0), vec4(normalize(vNormal), 0), vec4(0, 0, 0, 1));
+  highp vec4 normalOriginal =
+      vec4(normalize(texture2D(uNormalSampler, vTextureCoord).xyz * 2.0
+      - vec3(1.0, 1.0, 1.0)), 1.0);
+  highp mat4 normalTransform =
+      mat4(vec4(normalize(vTangent), 0), vec4(normalize(vBiTangent), 0),
+           vec4(normalize(vNormal), 0), vec4(0, 0, 0, 1));
   highp vec3 normal = normalize(vec3(normalTransform * normalOriginal));
 
-  highp vec4 metallicRoughness = texture2D(uMetallicRoughnessSampler, vTextureCoord);
+  highp vec4 metallicRoughness =
+      texture2D(uMetallicRoughnessSampler, vTextureCoord);
   highp float metallic = metallicRoughness.b;
   highp float roughness = metallicRoughness.g;
 
-  highp vec4 brdf = texture2D(uBrdfSampler, vec2(dot(-vFromCamera, normal), 1.0 - roughness));
+  highp vec4 brdf =
+      texture2D(uBrdfSampler, vec2(dot(-vFromCamera, normal), 1.0 - roughness));
 
   highp vec3 refVec = vFromCamera - 2.0 * (normal * dot(vFromCamera, normal));
   refVec *= vec3(1.0, 1.0, -1.0);
-  highp vec3 diffLight = textureCube(uEnvironmentSampler, normalize(refVec), 10.0).rgb;
-  highp vec3 specLight = textureCube(uEnvironmentSampler, normalize(refVec), 0.0).rgb;
+  highp vec3 diffLight =
+      textureCube(uEnvironmentSampler, normalize(refVec), 10.0).rgb;
+  highp vec3 specLight =
+      textureCube(uEnvironmentSampler, normalize(refVec), 0.0).rgb;
 
   highp vec4 baseCol = texture2D(uBaseSampler, vTextureCoord);
 
-  highp vec3 diffCol = mix(baseCol.rgb * (1.0 - dielectricSpecular.r), black, metallic);
+  highp vec3 diffCol =
+      mix(baseCol.rgb * (1.0 - dielectricSpecular.r), black, metallic);
   highp vec3 specCol = mix(dielectricSpecular, baseCol.rgb, metallic);
-  
+
   highp vec3 emissiveCol = texture2D(uEmissiveSampler, vTextureCoord).rgb;
   emissiveCol *= uEmissiveFactor;
 
-  highp vec3 finalColor = (diffCol * diffLight) + (specLight * (specCol * brdf.x + brdf.y)) + emissiveCol;
+  highp vec3 finalColor = (diffCol * diffLight) +
+      (specLight * (specCol * brdf.x + brdf.y)) + emissiveCol;
   finalColor *= 1.2;
 
   gl_FragColor = vec4(finalColor, 1.0);
@@ -7631,12 +7646,11 @@ void main(void) {
 `;
     class ModelShader extends ShaderProgram_1.default {
         static create(gl, width, height) {
-            let shaderProgram = ShaderProgram_1.default.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+            const shaderProgram = ShaderProgram_1.default.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
             if (shaderProgram === null) {
-                throw 'Could not create shader program for model shader program!';
+                throw new Error('Could not create shader program for model shader program!');
             }
-            ;
-            let shader = new ModelShader(gl, shaderProgram, width, height);
+            const shader = new ModelShader(gl, shaderProgram, width, height);
             shader.bindLocations();
             const brdfImage = new Image();
             brdfImage.src = 'images/brdf.png';
@@ -7644,12 +7658,10 @@ void main(void) {
                 ShaderUtils_1.createTexture(gl, brdfImage, [1.0, 0.0, 0.0, 1.0], false);
             return shader;
         }
-        ;
         draw(mode = WebGLRenderingContext.TRIANGLES) {
             this.bindBrdfTexture();
             this.gl.drawElements(mode, this.indexCount, this.indexType, this.indexOffset);
         }
-        ;
         setIndices(buffer, type, count, offset) {
             const gl = this.gl;
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
@@ -7657,63 +7669,49 @@ void main(void) {
             this.indexCount = count;
             this.indexOffset = offset;
         }
-        ;
         bindVertexPosition(buffer, componentType, byteStride, byteOffset) {
             this.bindAttribute(buffer, this.vertexPosition, 3, componentType, false, byteStride, byteOffset);
         }
-        ;
         bindVertexNormal(buffer, componentType, byteStride, byteOffset) {
             this.bindAttribute(buffer, this.vertexNormal, 3, componentType, true, byteStride, byteOffset);
         }
-        ;
         bindVertexTangent(buffer, componentType, byteStride, byteOffset) {
             this.bindAttribute(buffer, this.vertexTangent, 3, componentType, true, byteStride, byteOffset);
         }
-        ;
         bindVertexBiTangent(buffer, componentType, byteStride, byteOffset) {
             this.bindAttribute(buffer, this.vertexBiTangent, 3, componentType, true, byteStride, byteOffset);
         }
-        ;
         bindVertexTexCoord(buffer, componentType, byteStride, byteOffset) {
             this.bindAttribute(buffer, this.vertexTexCoord, 2, componentType, false, byteStride, byteOffset);
         }
-        ;
         setProjectionMatrix(projectionMatrix) {
             this.gl.uniformMatrix4fv(this.projectionMatrix, false, projectionMatrix);
         }
-        ;
         setModelViewMatrix(modelViewMatrix) {
             this.gl.uniformMatrix4fv(this.modelViewMatrix, false, modelViewMatrix);
-            let itModelViewMatrix = gl_matrix_1.mat4.create();
+            const itModelViewMatrix = gl_matrix_1.mat4.create();
             gl_matrix_1.mat4.invert(itModelViewMatrix, modelViewMatrix);
             gl_matrix_1.mat4.transpose(itModelViewMatrix, itModelViewMatrix);
             this.gl.uniformMatrix4fv(this.itModelViewMatrix, false, itModelViewMatrix);
         }
-        ;
         bindBaseTexture(texture) {
             this.bindTexture(texture, this.baseSampler, 0);
         }
-        ;
         bindMetallicRoughnessTexture(texture) {
             this.bindTexture(texture, this.metallicRoughnessSampler, 1);
         }
-        ;
         bindEmissiveTexture(texture) {
             this.bindTexture(texture, this.emissiveSampler, 2);
         }
-        ;
         setEmissiveFactor(factor) {
             this.gl.uniform3fv(this.emissiveFactor, factor);
         }
-        ;
         bindNormalTexture(texture) {
             this.bindTexture(texture, this.normalSampler, 3);
         }
-        ;
         bindEnvironmentTexture(texture) {
             this.bindCubeMap(texture, this.environmentSampler, 4);
         }
-        ;
         bindLocations() {
             this.vertexPosition = this.findAttributeOrThrow('aVertexPosition');
             this.vertexNormal = this.findAttributeOrThrow('aVertexNormal');
@@ -7732,14 +7730,11 @@ void main(void) {
             this.environmentSampler = this.findUniformOrThrow('uEnvironmentSampler');
             this.brdfSampler = this.findUniformOrThrow('uBrdfSampler');
         }
-        ;
         bindBrdfTexture() {
             this.bindTexture(this.brdfTexture, this.brdfSampler, 5);
         }
-        ;
     }
     exports.default = ModelShader;
-    ;
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -7753,16 +7748,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     Object.defineProperty(exports, "__esModule", { value: true });
     const SKYBOX_SIZE = 2048;
     function createSkyBox(gl, image) {
-        const shaderProgram = getShaderProgram(gl);
-        gl.useProgram(shaderProgram);
-        const vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-        const textureCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord');
-        const skyboxSampler = gl.getUniformLocation(shaderProgram, 'uSkyboxSampler');
+        const newShaderProgram = getShaderProgram(gl);
+        gl.useProgram(newShaderProgram);
+        const vertexPosition = gl.getAttribLocation(newShaderProgram, 'aVertexPosition');
+        const textureCoord = gl.getAttribLocation(newShaderProgram, 'aTextureCoord');
+        const skyboxSampler = gl.getUniformLocation(newShaderProgram, 'uSkyboxSampler');
         const skyBoxTexture = gl.createTexture();
         if (!skyBoxTexture) {
-            throw `Could not create texture for sky map!`;
+            throw new Error(`Could not create texture for sky map!`);
         }
-        ;
         gl.bindTexture(gl.TEXTURE_2D, skyBoxTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -7771,23 +7765,22 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, skyBoxTexture);
         gl.uniform1i(skyboxSampler, 0);
-        let positionBuffer = gl.createBuffer();
+        const positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
         gl.vertexAttribPointer(vertexPosition, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vertexPosition);
-        let texCoordBuffer = gl.createBuffer();
+        const texCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, UVS, gl.STATIC_DRAW);
         gl.enableVertexAttribArray(textureCoord);
-        let indicesBuffer = gl.createBuffer();
+        const indicesBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
-        let cubeTexture = gl.createTexture();
+        const cubeTexture = gl.createTexture();
         if (!cubeTexture) {
-            throw 'Could not create texture for sky box!';
+            throw new Error('Could not create texture for sky box!');
         }
-        ;
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -7796,12 +7789,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         for (let i = 0; i < 6; ++i) {
             gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, SKYBOX_SIZE, SKYBOX_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
         }
-        ;
-        let frameBuffer = gl.createFramebuffer();
+        const frameBuffer = gl.createFramebuffer();
         if (frameBuffer === null) {
-            throw 'Could not create frame buffer for sky box!';
+            throw new Error('Could not create frame buffer for sky box!');
         }
-        ;
         gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
         gl.viewport(0, 0, SKYBOX_SIZE, SKYBOX_SIZE);
         for (let i = 0; i < 6; ++i) {
@@ -7809,10 +7800,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
             gl.vertexAttribPointer(textureCoord, 2, WebGLRenderingContext.FLOAT, false, 0, i * 4 * 4 * 2);
             gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            // tslint:disable-next-line:no-bitwise
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
         }
-        ;
         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -7826,21 +7817,17 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         return cubeTexture;
     }
     exports.createSkyBox = createSkyBox;
-    ;
     let shaderProgram;
     function getShaderProgram(gl) {
         if (!shaderProgram) {
-            let program = ShaderUtils_1.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+            const program = ShaderUtils_1.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
             if (!program) {
-                throw 'Could not create shader program!';
+                throw new Error('Could not create shader program!');
             }
-            ;
             shaderProgram = program;
         }
-        ;
         return shaderProgram;
     }
-    ;
     const VERTEX_SHADER = `
 attribute vec2 aVertexPosition;
 attribute vec2 aTextureCoord;
@@ -7966,21 +7953,19 @@ void main(void) {
 `;
     class SkyBoxShader extends ShaderProgram_1.default {
         static create(gl, width, height) {
-            let shaderProgram = ShaderProgram_1.default.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+            const shaderProgram = ShaderProgram_1.default.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
             if (shaderProgram === null) {
-                throw 'Could not create shader program for model shader program!';
+                throw new Error('Could not create shader program for model shader program!');
             }
-            ;
-            let shader = new SkyBoxShader(gl, shaderProgram, width, height);
+            const shader = new SkyBoxShader(gl, shaderProgram, width, height);
             shader.bindLocations();
             shader.init();
             return shader;
         }
-        ;
         draw(modelViewMatrix) {
             const gl = this.gl;
             this.activate();
-            let itModelViewMatrix = gl_matrix_1.mat4.create();
+            const itModelViewMatrix = gl_matrix_1.mat4.create();
             gl_matrix_1.mat4.invert(itModelViewMatrix, modelViewMatrix);
             gl_matrix_1.mat4.transpose(itModelViewMatrix, itModelViewMatrix);
             gl.uniformMatrix4fv(this.itModelViewMatrix, false, itModelViewMatrix);
@@ -7995,33 +7980,12 @@ void main(void) {
         bindSkyBoxTexture(texture) {
             this.skyBoxTexture = texture;
         }
-        ;
         setFov(fov) {
             this.zDepth = 1.0 / Math.sin(fov / 2.0);
         }
-        ;
         setAspect(ratio) {
             this.aspectRatio = ratio;
         }
-        init() {
-            const gl = this.gl;
-            this.activate();
-            let vertexPosition = gl.createBuffer();
-            if (vertexPosition === null) {
-                throw 'Could not create buffer for sky box renderer!';
-            }
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosition);
-            gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
-            this.positionsBuffer = vertexPosition;
-            let indicesBuffer = gl.createBuffer();
-            if (indicesBuffer === null) {
-                throw 'Could not create index buffer for sky box renderer!';
-            }
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
-            this.indicesBuffer = indicesBuffer;
-        }
-        ;
         bindLocations() {
             this.vertexPosition = this.findAttributeOrThrow('aVertexPosition');
             this.itModelViewMatrix = this.findUniformOrThrow('uItModelViewMatrix');
@@ -8029,10 +7993,26 @@ void main(void) {
             this.aspectLocation = this.findUniformOrThrow('uAspectRatio');
             this.skyBoxSampler = this.findUniformOrThrow('uSkyBoxSampler');
         }
-        ;
+        init() {
+            const gl = this.gl;
+            this.activate();
+            const vertexPosition = gl.createBuffer();
+            if (vertexPosition === null) {
+                throw new Error('Could not create buffer for sky box renderer!');
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosition);
+            gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
+            this.positionsBuffer = vertexPosition;
+            const indicesBuffer = gl.createBuffer();
+            if (indicesBuffer === null) {
+                throw new Error('Could not create index buffer for sky box renderer!');
+            }
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
+            this.indicesBuffer = indicesBuffer;
+        }
     }
     exports.default = SkyBoxShader;
-    ;
     const INDICES = new Uint8Array([0, 1, 2, 0, 2, 3]);
     const POSITIONS = new Float32Array([-1, 1, -1, -1, 1, -1, 1, 1]);
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
@@ -8152,7 +8132,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                 ";");
         }
         handleSelectChanged(event) {
-            const index = parseInt(event.currentTarget.value);
+            const index = parseInt(event.currentTarget.value, 10);
             this.setState({
                 value: index
             });

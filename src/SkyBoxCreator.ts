@@ -5,18 +5,19 @@ const SKYBOX_SIZE = 2048;
 
 export function createSkyBox(
     gl: WebGLRenderingContext, image: HTMLImageElement): CubeMap {
-  const shaderProgram = getShaderProgram(gl);
-  gl.useProgram(shaderProgram);
+  const newShaderProgram = getShaderProgram(gl);
+  gl.useProgram(newShaderProgram);
 
-  const vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-  const textureCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord');
-  const skyboxSampler = gl.getUniformLocation(shaderProgram, 'uSkyboxSampler');
-
+  const vertexPosition =
+      gl.getAttribLocation(newShaderProgram, 'aVertexPosition');
+  const textureCoord = gl.getAttribLocation(newShaderProgram, 'aTextureCoord');
+  const skyboxSampler =
+      gl.getUniformLocation(newShaderProgram, 'uSkyboxSampler');
 
   const skyBoxTexture = gl.createTexture();
   if (!skyBoxTexture) {
-    throw `Could not create texture for sky map!`;
-  };
+    throw new Error(`Could not create texture for sky map!`);
+  }
   gl.bindTexture(gl.TEXTURE_2D, skyBoxTexture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -26,26 +27,26 @@ export function createSkyBox(
   gl.bindTexture(gl.TEXTURE_2D, skyBoxTexture);
   gl.uniform1i(skyboxSampler, 0);
 
-  let positionBuffer = gl.createBuffer();
+  const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
   gl.vertexAttribPointer(
       vertexPosition, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
   gl.enableVertexAttribArray(vertexPosition);
 
-  let texCoordBuffer = gl.createBuffer();
+  const texCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, UVS, gl.STATIC_DRAW);
   gl.enableVertexAttribArray(textureCoord);
 
-  let indicesBuffer = gl.createBuffer();
+  const indicesBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
 
-  let cubeTexture = gl.createTexture();
+  const cubeTexture = gl.createTexture();
   if (!cubeTexture) {
-    throw 'Could not create texture for sky box!';
-  };
+    throw new Error('Could not create texture for sky box!');
+  }
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -57,12 +58,12 @@ export function createSkyBox(
     gl.texImage2D(
         gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, SKYBOX_SIZE,
         SKYBOX_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  };
+  }
 
-  let frameBuffer = gl.createFramebuffer();
+  const frameBuffer = gl.createFramebuffer();
   if (frameBuffer === null) {
-    throw 'Could not create frame buffer for sky box!';
-  };
+    throw new Error('Could not create frame buffer for sky box!');
+  }
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
 
   gl.viewport(0, 0, SKYBOX_SIZE, SKYBOX_SIZE);
@@ -76,10 +77,11 @@ export function createSkyBox(
         textureCoord, 2, WebGLRenderingContext.FLOAT, false, 0, i * 4 * 4 * 2);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // tslint:disable-next-line:no-bitwise
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
-  };
+  }
   gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
@@ -95,19 +97,19 @@ export function createSkyBox(
   gl.deleteTexture(skyBoxTexture);
 
   return cubeTexture;
-};
+}
 
 let shaderProgram: WebGLProgram;
 function getShaderProgram(gl: WebGLRenderingContext): WebGLProgram {
   if (!shaderProgram) {
-    let program = createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+    const program = createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
     if (!program) {
-      throw 'Could not create shader program!';
-    };
+      throw new Error('Could not create shader program!');
+    }
     shaderProgram = program;
-  };
+  }
   return shaderProgram;
-};
+}
 
 const VERTEX_SHADER = `
 attribute vec2 aVertexPosition;

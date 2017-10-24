@@ -2,8 +2,8 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
 import Attribution from './Attribution';
-import Options from './Options';
 import { ModelDetail, SkyBoxDetail } from './Details';
+import Options from './Options';
 
 interface AppProps {
   models: ModelDetail[];
@@ -55,13 +55,16 @@ export class App extends React.Component<AppProps, AppState> {
         defaultSkyBox={this.props.defaultSkyBox}
         onSkyBoxChange={this.handleSkyBoxChange}
       />
-    </div>
+    </div>;
   }
 }
 
-export function initializeApp(models: ModelDetail[], defaultModel: number,
-  onModelChange: (modelUrl: string) => void, skyBoxes: SkyBoxDetail[],
-  defaultSkyBox: number, onSkyBoxChange: (skyBoxUrl: string) => void) {
+export function initializeApp(models: ModelDetail[],
+                              defaultModel: number,
+                              onModelChange: (modelUrl: string) => void,
+                              skyBoxes: SkyBoxDetail[],
+                              defaultSkyBox: number,
+                              onSkyBoxChange: (skyBoxUrl: string) => void) {
   ReactDom.render(<App
     models={models}
     onModelChange={onModelChange}

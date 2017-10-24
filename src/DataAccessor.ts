@@ -1,6 +1,8 @@
 import {mat3, mat4, vec2, vec3} from 'gl-matrix';
 // TODO: Document and make this more generic.
 abstract class DataAccessor<T> {
+  count: number;
+
   protected dataView: DataView;
 
   protected getter: (index: number, littleEndian: boolean) => number;
@@ -9,8 +11,6 @@ abstract class DataAccessor<T> {
       (index: number, value: number, littleEndian: boolean) => void;
 
   protected stride: number;
-
-  count: number;
 
   constructor(data: ArrayBuffer, type: number, count: number, byteOffset = 0) {
     this.dataView = new DataView(data, byteOffset);
@@ -59,21 +59,20 @@ abstract class DataAccessor<T> {
 
   abstract get(index: number): T;
   abstract set(index: number, value: T): void;
-  }
+}
 
 export class Mat3Accessor extends DataAccessor<mat3> {
   get(index: number): mat3 {
     const baseIndex = index * this.stride * 3;
-    return mat3.fromValues(
-        this.getter(baseIndex, true),
-        this.getter(baseIndex + this.stride, true),
-        this.getter(baseIndex + this.stride * 2, true),
-        this.getter(baseIndex + this.stride * 3, true),
-        this.getter(baseIndex + this.stride * 4, true),
-        this.getter(baseIndex + this.stride * 5, true),
-        this.getter(baseIndex + this.stride * 6, true),
-        this.getter(baseIndex + this.stride * 7, true),
-        this.getter(baseIndex + this.stride * 8, true));
+    return mat3.fromValues(this.getter(baseIndex, true),
+                           this.getter(baseIndex + this.stride, true),
+                           this.getter(baseIndex + this.stride * 2, true),
+                           this.getter(baseIndex + this.stride * 3, true),
+                           this.getter(baseIndex + this.stride * 4, true),
+                           this.getter(baseIndex + this.stride * 5, true),
+                           this.getter(baseIndex + this.stride * 6, true),
+                           this.getter(baseIndex + this.stride * 7, true),
+                           this.getter(baseIndex + this.stride * 8, true));
   }
 
   set(index: number, value: mat3): void {
@@ -88,28 +87,27 @@ export class Mat3Accessor extends DataAccessor<mat3> {
     this.setter(baseIndex + this.stride * 7, value[7], true);
     this.setter(baseIndex + this.stride * 8, value[8], true);
   }
-  }
+}
 
 export class Mat4Accessor extends DataAccessor<mat4> {
   get(index: number): mat4 {
     const baseIndex = index * this.stride * 3;
-    return mat4.fromValues(
-        this.getter(baseIndex, true),
-        this.getter(baseIndex + this.stride, true),
-        this.getter(baseIndex + this.stride * 2, true),
-        this.getter(baseIndex + this.stride * 3, true),
-        this.getter(baseIndex + this.stride * 4, true),
-        this.getter(baseIndex + this.stride * 5, true),
-        this.getter(baseIndex + this.stride * 6, true),
-        this.getter(baseIndex + this.stride * 7, true),
-        this.getter(baseIndex + this.stride * 8, true),
-        this.getter(baseIndex + this.stride * 9, true),
-        this.getter(baseIndex + this.stride * 10, true),
-        this.getter(baseIndex + this.stride * 11, true),
-        this.getter(baseIndex + this.stride * 12, true),
-        this.getter(baseIndex + this.stride * 13, true),
-        this.getter(baseIndex + this.stride * 14, true),
-        this.getter(baseIndex + this.stride * 15, true));
+    return mat4.fromValues(this.getter(baseIndex, true),
+                           this.getter(baseIndex + this.stride, true),
+                           this.getter(baseIndex + this.stride * 2, true),
+                           this.getter(baseIndex + this.stride * 3, true),
+                           this.getter(baseIndex + this.stride * 4, true),
+                           this.getter(baseIndex + this.stride * 5, true),
+                           this.getter(baseIndex + this.stride * 6, true),
+                           this.getter(baseIndex + this.stride * 7, true),
+                           this.getter(baseIndex + this.stride * 8, true),
+                           this.getter(baseIndex + this.stride * 9, true),
+                           this.getter(baseIndex + this.stride * 10, true),
+                           this.getter(baseIndex + this.stride * 11, true),
+                           this.getter(baseIndex + this.stride * 12, true),
+                           this.getter(baseIndex + this.stride * 13, true),
+                           this.getter(baseIndex + this.stride * 14, true),
+                           this.getter(baseIndex + this.stride * 15, true));
   }
 
   set(index: number, value: mat4): void {
@@ -131,7 +129,7 @@ export class Mat4Accessor extends DataAccessor<mat4> {
     this.setter(baseIndex + this.stride * 14, value[8], true);
     this.setter(baseIndex + this.stride * 15, value[8], true);
   }
-  }
+}
 
 export class ScalarAccessor extends DataAccessor<number> {
   get(index: number): number {
@@ -141,14 +139,13 @@ export class ScalarAccessor extends DataAccessor<number> {
   set(index: number, value: number): void {
     this.setter(index * this.stride, value, true);
   }
-  }
+}
 
 export class Vec2Accessor extends DataAccessor<vec2> {
   get(index: number): vec2 {
     const baseIndex = index * this.stride * 2;
-    return vec2.fromValues(
-        this.getter(baseIndex, true),
-        this.getter(baseIndex + this.stride, true));
+    return vec2.fromValues(this.getter(baseIndex, true),
+                           this.getter(baseIndex + this.stride, true));
   }
 
   set(index: number, value: vec2): void {
@@ -156,7 +153,7 @@ export class Vec2Accessor extends DataAccessor<vec2> {
     this.setter(baseIndex, value[0], true);
     this.setter(baseIndex + this.stride, value[1], true);
   }
-  }
+}
 
 export class Vec3Accessor extends DataAccessor<vec3> {
   get(index: number): vec3 {
@@ -164,7 +161,8 @@ export class Vec3Accessor extends DataAccessor<vec3> {
     return vec3.fromValues(
         this.getter(baseIndex, true),
         this.getter(baseIndex + this.stride, true),
-        this.getter(baseIndex + this.stride * 2, true), );
+        this.getter(baseIndex + this.stride * 2, true),
+    );
   }
 
   set(index: number, value: vec3): void {

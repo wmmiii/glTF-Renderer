@@ -6,7 +6,7 @@ export function fetchResource(
         resourceRequest.open('GET', url);
         if (responseType) {
           resourceRequest.responseType = responseType;
-        };
+        }
         resourceRequest.addEventListener('load', () => {
           resolve(resourceRequest.response);
         });
@@ -14,7 +14,7 @@ export function fetchResource(
         resourceRequest.onabort = reject;
         resourceRequest.send();
       });
-};
+}
 
 export function fetchImage(url: string): Promise<HTMLImageElement> {
   return new Promise(
@@ -25,7 +25,7 @@ export function fetchImage(url: string): Promise<HTMLImageElement> {
         image.onerror = (error: ErrorEvent) => reject(error);
         image.src = url;
       });
-  }
+}
 
 export function resolvePath(basePath: string, relativePath: string): string {
   const regex = /(.*\/)[^\/]*/;
@@ -34,5 +34,5 @@ export function resolvePath(basePath: string, relativePath: string): string {
     return match[1] + relativePath;
   } else {
     return relativePath;
-  };
-};
+  }
+}

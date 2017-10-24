@@ -9,14 +9,13 @@ import SkyBoxShader from './SkyBoxShader';
 import * as App from './ui/App';
 import {Author, ModelDetail, SkyBoxDetail} from './ui/Details';
 
-let gl: WebGLRenderingContext;
 let cubeMap: CubeMap;
 let skyBoxShader: SkyBoxShader;
 let modelRenderer: ModelRenderer;
 let modelLoader: GltfLoader;
 
 let currentModel: number = 0;
-let loadedModels: {[key: string]: number} = {};
+const loadedModels: {[key: string]: number} = {};
 
 // TODO: Make functions more generic and refactor into modules.
 // TODO: Add documentation comments on all functions, classes, and interfaces.
@@ -24,7 +23,7 @@ let loadedModels: {[key: string]: number} = {};
 const FOV = 45 * Math.PI / 180;
 
 let xRot: number = Math.PI;
-let yRot: number = Math.PI / 2;
+let yRot: number = Math.PI * 0.60;
 let xVel: number = 0;
 let yVel: number = 0;
 
@@ -34,6 +33,7 @@ let xLastFrame: number = 0;
 let yLastFrame: number = 0;
 
 let zoom: number = 2;
+let dragging = false;
 
 function drawScene(gl: WebGLRenderingContext) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
@@ -42,18 +42,17 @@ function drawScene(gl: WebGLRenderingContext) {
   gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
   // Clear the canvas before we start drawing on it.
+  // tslint:disable-next-line:no-bitwise
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const aspectRatio = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
   const projectionMatrix = mat4.create();
-  mat4.perspective(
-      projectionMatrix,
-      FOV,          // FOV
-      aspectRatio,  // Aspect
-      0.01,         // Z-Near
-      100.0);       // Z-Far
-
+  mat4.perspective(projectionMatrix,
+                   FOV,          // FOV
+                   aspectRatio,  // Aspect
+                   0.01,         // Z-Near
+                   100.0);       // Z-Far
 
   const viewMatrix = mat4.create();
   mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -Math.pow(2, zoom)]);
@@ -67,7 +66,7 @@ function drawScene(gl: WebGLRenderingContext) {
   } else {
     xVel /= 1.1;
     yVel /= 1.1;
-  };
+  }
   xRot -= xVel;
   yRot += yVel;
 
@@ -91,20 +90,50 @@ function drawScene(gl: WebGLRenderingContext) {
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
-  modelRenderer.renderModel(
-      currentModel, projectionMatrix, modelViewMatrix, cubeMap);
-};
+  modelRenderer.renderModel(currentModel, projectionMatrix, modelViewMatrix,
+                            cubeMap);
+}
+
+function initApp(gl: WebGLRenderingContext) {
+  App.initializeApp(models, 1,
+                    (modelUrl: string) => {
+                      if (loadedModels[modelUrl] !== undefined) {
+                        currentModel = loadedModels[modelUrl];
+                      } else {
+                        modelLoader.loadGltf(modelUrl).then((model) => {
+                          loadedModels[modelUrl] =
+                              modelRenderer.registerModel(model);
+                          currentModel = loadedModels[modelUrl];
+                        });
+                      }
+                    },
+                    skyBoxes, 3,
+                    (skyBoxUrl: string) => {
+                      return fetchImage(skyBoxUrl)
+                          .then((data: HTMLImageElement) => {
+                            return createSkyBox(gl, data);
+                          })
+                          .then((skyBox: CubeMap) => {
+                            cubeMap = skyBox;
+                            skyBoxShader.bindSkyBoxTexture(skyBox);
+                          });
+                    });
+}
 
 /** Does what it says on the tin. */
 function main() {
   const canvas = document.getElementById('glCanvas') as HTMLCanvasElement;
+  initCanvas(canvas);
+
   // Initialize the GL context
   const canvasContext = canvas.getContext('webgl');
   if (canvasContext === null) {
     console.error('Unable to initialize GL context!');
     return;
   }
-  gl = canvasContext;
+  const gl = canvasContext;
+
+  initApp(gl);
 
   modelLoader = new GltfLoader();
   modelRenderer =
@@ -113,12 +142,11 @@ function main() {
   skyBoxShader =
       SkyBoxShader.create(gl, () => canvas.width, () => canvas.height);
 
-  const helmet =
-      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
+  const helmetUrl = models[1].url;
 
-  modelLoader.loadGltf(helmet)
+  modelLoader.loadGltf(helmetUrl)
       .then((model) => {
-        loadedModels[helmet] = modelRenderer.registerModel(model);
+        loadedModels[helmetUrl] = modelRenderer.registerModel(model);
       })
       .then(() => {
         return fetchImage('images/Yokohama.jpg');
@@ -129,49 +157,48 @@ function main() {
       .then((skyBox: CubeMap) => {
         cubeMap = skyBox;
         skyBoxShader.bindSkyBoxTexture(skyBox);
-        let render = () => {
+        const render = () => {
           drawScene(gl);
           requestAnimationFrame(render);
         };
 
         requestAnimationFrame(render);
       });
-};
+}
 
-const canvas = document.getElementsByTagName('canvas')[0];
-let dragging = false;
-canvas.addEventListener('mousedown', (event: MouseEvent) => {
-  dragging = true;
-  xCurrent = event.x;
-  xLastFrame = event.x;
-  yCurrent = event.y;
-  yLastFrame = event.y;
-  canvas.classList.add('grabbing');
-});
-let endDrag = () => {
-  dragging = false;
-  canvas.classList.remove('grabbing');
-};
-canvas.addEventListener('mouseup', endDrag);
-canvas.addEventListener('mouseout', endDrag);
-
-canvas.addEventListener('mousemove', (event: MouseEvent) => {
-  if (dragging) {
+function initCanvas(canvas: HTMLCanvasElement) {
+  canvas.addEventListener('mousedown', (event: MouseEvent) => {
+    dragging = true;
     xCurrent = event.x;
+    xLastFrame = event.x;
     yCurrent = event.y;
-  }
-});
+    yLastFrame = event.y;
+    canvas.classList.add('grabbing');
+  });
+  const endDrag = () => {
+    dragging = false;
+    canvas.classList.remove('grabbing');
+  };
+  canvas.addEventListener('mouseup', endDrag);
+  canvas.addEventListener('mouseout', endDrag);
 
-canvas.addEventListener('mousewheel', (event: WheelEvent) => {
-  zoom -= event.wheelDeltaY / 1000;
-});
+  canvas.addEventListener('mousemove', (event: MouseEvent) => {
+    if (dragging) {
+      xCurrent = event.x;
+      yCurrent = event.y;
+    }
+  });
 
+  canvas.addEventListener('wheel', (event: WheelEvent) => {
+    zoom += event.deltaY / 250;
+  });
+}
 
 const models: ModelDetail[] = [
   {
     title: 'Boom Box',
-    url:
-        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBox/glTF/BoomBox.gltf',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+             'master/2.0/BoomBox/glTF/BoomBox.gltf',
     creator: {
       name: 'Ryan Martin',
       url: 'https://www.linkedin.com/in/ryan-c-martin-techartist/'
@@ -179,20 +206,20 @@ const models: ModelDetail[] = [
   },
   {
     title: 'Damaged Helmet',
-    url:
-        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+             'master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
     creator:
         {name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_'}
   },
   {
     title: 'Barramundi Fish',
-    url:
-        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+             'master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
   },
   {
     title: 'Water Bottle',
-    url:
-        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/WaterBottle/glTF/WaterBottle.gltf',
+    url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/' +
+             'master/2.0/WaterBottle/glTF/WaterBottle.gltf',
     creator: {
       name: 'Patrick Ryan',
       url: 'https://www.linkedin.com/in/patrickcryan/'
@@ -216,29 +243,5 @@ const skyBoxes: SkyBoxDetail[] = [
   {title: 'Snowy', url: 'images/FootballField.jpg', creator: humus},
   {title: 'Yokohama', url: 'images/Yokohama.jpg', creator: humus}
 ];
-
-App.initializeApp(
-    models, 1,
-    (modelUrl: string) => {
-      if (loadedModels[modelUrl] !== undefined) {
-        currentModel = loadedModels[modelUrl];
-      } else {
-        modelLoader.loadGltf(modelUrl).then((model) => {
-          loadedModels[modelUrl] = modelRenderer.registerModel(model);
-          currentModel = loadedModels[modelUrl];
-        });
-      }
-    },
-    skyBoxes, 3,
-    (skyBoxUrl: string) => {
-      return fetchImage(skyBoxUrl)
-          .then((data: HTMLImageElement) => {
-            return createSkyBox(gl, data);
-          })
-          .then((skyBox: CubeMap) => {
-            cubeMap = skyBox;
-            skyBoxShader.bindSkyBoxTexture(skyBox);
-          });
-    });
 
 document.body.onload = main;

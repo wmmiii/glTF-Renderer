@@ -3,10 +3,18 @@ import {mat2, mat4, vec2, vec3} from 'gl-matrix';
 import {CubeMap} from './CubeMap';
 import {ScalarAccessor, Vec2Accessor, Vec3Accessor} from './DataAccessor';
 import GlModelWrapper from './GlModelWrapper';
-import {Model, VertexSizes} from './Model'
+import {Model, VertexSizes} from './Model';
 import ModelShader from './ModelShader';
 
 export default class ModelRenderer {
+  static create(gl: WebGLRenderingContext,
+                width: () => number,
+                height: () => number) {
+    const renderer = new ModelRenderer(gl);
+    renderer.shader = ModelShader.create(gl, width, height);
+    return renderer;
+  }
+
   private gl: WebGLRenderingContext;
   private shader: ModelShader;
   private modelWrappers: GlModelWrapper[];
@@ -15,47 +23,39 @@ export default class ModelRenderer {
   private emissiveFactorDefault: number[];
   private normalDefault: WebGLTexture;
 
-  static create(
-      gl: WebGLRenderingContext, width: () => number, height: () => number) {
-    let renderer = new ModelRenderer(gl);
-    renderer.shader = ModelShader.create(gl, width, height);
-    return renderer;
-  }
-
   private constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
     this.modelWrappers = [];
 
     const emissiveDefault = gl.createTexture();
     if (emissiveDefault === null) {
-      throw 'Could not create default emissive texture!';
+      throw new Error('Could not create default emissive texture!');
     }
     this.emissiveDefault = emissiveDefault;
     gl.bindTexture(gl.TEXTURE_2D, this.emissiveDefault);
-    gl.texImage2D(
-        gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-        new Uint8Array([0, 0, 0, 1]));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  new Uint8Array([0, 0, 0, 1]));
 
     this.emissiveFactorDefault = [0, 0, 0];
 
     const normalDefault = gl.createTexture();
     if (normalDefault === null) {
-      throw 'Could not create default emissive texture!';
+      throw new Error('Could not create default emissive texture!');
     }
     this.normalDefault = normalDefault;
     gl.bindTexture(gl.TEXTURE_2D, this.normalDefault);
-    gl.texImage2D(
-        gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-        new Uint8Array([0.5, 0.5, 1, 1]));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  new Uint8Array([0.5, 0.5, 1, 1]));
   }
 
   registerModel(model: Model): number {
     return this.modelWrappers.push(new GlModelWrapper(model)) - 1;
   }
 
-  renderModel(
-      id: number, projectionMatrix: mat4, modelViewMatrix: mat4,
-      cubeMap: CubeMap) {
+  renderModel(id: number,
+              projectionMatrix: mat4,
+              modelViewMatrix: mat4,
+              cubeMap: CubeMap) {
     const modelWrapper = this.modelWrappers[id];
     this.initBuffers(modelWrapper);
     this.initTextures(modelWrapper);
@@ -85,10 +85,10 @@ export default class ModelRenderer {
         mat4.translate(primitiveViewMatrix, primitiveViewMatrix, shift);
 
         if (node.rotation) {
-          let identity = mat4.create();
+          const identity = mat4.create();
           mat4.identity(identity);
-          mat4.rotate(
-              primitiveViewMatrix, identity, node.rotation[3], node.rotation);
+          mat4.rotate(primitiveViewMatrix, identity, node.rotation[3],
+                      node.rotation);
         }
         mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
 
@@ -96,19 +96,19 @@ export default class ModelRenderer {
 
         mesh.primitives.forEach((primitive, primitiveIndex) => {
           // Position
-          this.bindModelVertexAttribute(
-              shader.bindVertexPosition.bind(shader),
-              primitive.attributes.POSITION, modelWrapper);
+          this.bindModelVertexAttribute(shader.bindVertexPosition.bind(shader),
+                                        primitive.attributes.POSITION,
+                                        modelWrapper);
 
           // Normal
-          this.bindModelVertexAttribute(
-              shader.bindVertexNormal.bind(shader), primitive.attributes.NORMAL,
-              modelWrapper);
+          this.bindModelVertexAttribute(shader.bindVertexNormal.bind(shader),
+                                        primitive.attributes.NORMAL,
+                                        modelWrapper);
 
           // Texture
-          this.bindModelVertexAttribute(
-              shader.bindVertexTexCoord.bind(shader),
-              primitive.attributes.TEXCOORD_0, modelWrapper);
+          this.bindModelVertexAttribute(shader.bindVertexTexCoord.bind(shader),
+                                        primitive.attributes.TEXCOORD_0,
+                                        modelWrapper);
 
           // Texture Tangents
           const tangents = modelWrapper.tangents[meshIndex][primitiveIndex];
@@ -116,8 +116,8 @@ export default class ModelRenderer {
 
           // Texture BiTangents
           const biTangents = modelWrapper.biTangents[meshIndex][primitiveIndex];
-          shader.bindVertexBiTangent(
-              biTangents, WebGLRenderingContext.FLOAT, 0, 0);
+          shader.bindVertexBiTangent(biTangents, WebGLRenderingContext.FLOAT, 0,
+                                     0);
 
           // Textures
           const material = model.materials[primitive.material];
@@ -133,14 +133,14 @@ export default class ModelRenderer {
                 modelWrapper.textures[material.normalTexture.index]);
           } else {
             shader.bindNormalTexture(this.normalDefault);
-            }
+          }
 
           if (material.emissiveTexture !== undefined) {
             shader.bindEmissiveTexture(
                 modelWrapper.textures[material.emissiveTexture.index]);
           } else {
             shader.bindEmissiveTexture(this.emissiveDefault);
-            }
+          }
 
           if (material.emissiveFactor !== undefined) {
             shader.setEmissiveFactor(material.emissiveFactor);
@@ -176,8 +176,8 @@ export default class ModelRenderer {
         const newArray = gl.createBuffer();
 
         if (!newArray) {
-          throw `Could not create array buffer ${index
-                } for model ${modelWrapper.model.asset.name}!`;
+          throw new Error(`Could not create array buffer ${index} for model ${
+              modelWrapper.model.asset.name}!`);
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, newArray);
@@ -186,8 +186,8 @@ export default class ModelRenderer {
         const newElement = gl.createBuffer();
 
         if (!newElement) {
-          throw `Could not create element buffer ${index
-                } for model ${modelWrapper.model.asset.name}!`;
+          throw new Error(`Could not create element buffer ${index} for model ${
+              modelWrapper.model.asset.name}!`);
         }
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, newElement);
@@ -208,13 +208,13 @@ export default class ModelRenderer {
       model.images.forEach((image, index) => {
         const newTexture = gl.createTexture();
         if (!newTexture) {
-          throw `Could not create texture ${index
-                } for model ${modelWrapper.model.asset.name}!`;
+          throw new Error(`Could not create texture ${index} for model ${
+              modelWrapper.model.asset.name}!`);
         }
 
         gl.bindTexture(gl.TEXTURE_2D, newTexture);
-        gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+                      image);
         if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
           gl.generateMipmap(gl.TEXTURE_2D);
         } else {
@@ -231,7 +231,8 @@ export default class ModelRenderer {
   }
 
   private isPowerOf2(value: number) {
-    return (value & (value - 1)) == 0;
+    // tslint:disable-next-line:no-bitwise
+    return (value & (value - 1)) === 0;
   }
 
   // TODO: Move this functionality into a model initializer.
@@ -248,7 +249,7 @@ export default class ModelRenderer {
 
       model.meshes.forEach((mesh, meshIndex) => {
         mesh.primitives.forEach((primitive, primitiveIndex) => {
-          if (model.materials[primitive.material].normalTexture != undefined) {
+          if (model.materials[primitive.material].normalTexture !== undefined) {
             const indices = getScalarAccessor(model, primitive.indices);
             const positions =
                 getVec3Accessor(model, primitive.attributes.POSITION);
@@ -275,17 +276,17 @@ export default class ModelRenderer {
               const uv3 = uvs.get(i3);
 
               // Find two edges of the triangle; A and B.
-              let aUv = vec2.create();
+              const aUv = vec2.create();
               vec2.sub(aUv, uv2, uv1);
-              let bUv = vec2.create();
+              const bUv = vec2.create();
               vec2.sub(bUv, uv3, uv1);
 
               // Find U and V as represented by A and B.
-              let triSpace = mat2.fromValues(aUv[0], aUv[1], bUv[0], bUv[1]);
+              const triSpace = mat2.fromValues(aUv[0], aUv[1], bUv[0], bUv[1]);
               mat2.invert(triSpace, triSpace);
-              let xTri = vec2.fromValues(1, 0);
+              const xTri = vec2.fromValues(1, 0);
               vec2.transformMat2(xTri, xTri, triSpace);
-              let yTri = vec2.fromValues(0, 1);
+              const yTri = vec2.fromValues(0, 1);
               vec2.transformMat2(yTri, yTri, triSpace);
 
               // Get model coordinates of triangle.
@@ -301,9 +302,9 @@ export default class ModelRenderer {
               minZ = Math.min(m1[2], m2[2], m3[2], minZ);
 
               // Find A and B in model space.
-              let aM = vec3.create();
+              const aM = vec3.create();
               vec3.sub(aM, m2, m1);
-              let bM = vec3.create();
+              const bM = vec3.create();
               vec3.sub(bM, m3, m1);
 
               // Find T and B in model space.
@@ -330,27 +331,27 @@ export default class ModelRenderer {
               addVec3(biTangentAccessor, i1, biTangent);
               addVec3(biTangentAccessor, i2, biTangent);
               addVec3(biTangentAccessor, i3, biTangent);
-              }
+            }
 
             const tangentBuffer = this.gl.createBuffer();
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, tangentBuffer);
-            this.gl.bufferData(
-                this.gl.ARRAY_BUFFER, tangents, this.gl.STATIC_DRAW);
+            this.gl.bufferData(this.gl.ARRAY_BUFFER, tangents,
+                               this.gl.STATIC_DRAW);
             if (!tangentBuffer) {
-              throw `Could not create tangent buffer (mesh ${meshIndex
-                    }, primitive ${primitiveIndex
-                    }) for model ${modelWrapper.model.asset.name}!`;
-              }
+              throw new Error(`Could not create tangent buffer (mesh ${
+                  meshIndex}, primitive ${primitiveIndex}) for model ${
+                  modelWrapper.model.asset.name}!`);
+            }
 
             const biTangentBuffer = this.gl.createBuffer();
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, biTangentBuffer);
-            this.gl.bufferData(
-                this.gl.ARRAY_BUFFER, biTangents, this.gl.STATIC_DRAW);
+            this.gl.bufferData(this.gl.ARRAY_BUFFER, biTangents,
+                               this.gl.STATIC_DRAW);
             if (!biTangentBuffer) {
-              throw `Could not create bitangent buffer (mesh ${meshIndex
-                    }, primitive ${primitiveIndex
-                    }) for model ${modelWrapper.model.asset.name}!`;
-              }
+              throw new Error(`Could not create bitangent buffer (mesh ${
+                  meshIndex}, primitive ${primitiveIndex}) for model ${
+                  modelWrapper.model.asset.name}!`);
+            }
 
             if (!modelWrapper.tangents[meshIndex]) {
               modelWrapper.tangents[meshIndex] = [];
@@ -374,58 +375,58 @@ export default class ModelRenderer {
     }
   }
 
-  private bindModelVertexAttribute(
-      bindFunction:
-          (buffer: WebGLBuffer, componentType: number, byteStride: number,
-           byteOffset: number) => void,
-      accessorIndex: number, modelWrapper: GlModelWrapper) {
+  private bindModelVertexAttribute(bindFunction: (buffer: WebGLBuffer,
+                                                  componentType: number,
+                                                  byteStride: number,
+                                                  byteOffset: number) => void,
+                                   accessorIndex: number,
+                                   modelWrapper: GlModelWrapper) {
     const accessor = modelWrapper.model.accessors[accessorIndex];
     const bufferView = modelWrapper.model.bufferViews[accessor.bufferView];
     const size = VertexSizes.get(accessor.type);
 
     if (!size) {
-      throw 'Tried to bind non vertex to vertex attribute!';
+      throw new Error('Tried to bind non vertex to vertex attribute!');
     }
 
-    bindFunction(
-        modelWrapper.buffers[bufferView.buffer].array, accessor.componentType,
-        bufferView.byteStride || 0,
-        (accessor.byteOffset || 0) + (bufferView.byteOffset || 0));
+    bindFunction(modelWrapper.buffers[bufferView.buffer].array,
+                 accessor.componentType, bufferView.byteStride || 0,
+                 (accessor.byteOffset || 0) + (bufferView.byteOffset || 0));
   }
-  }
+}
 
 function getScalarAccessor(model: Model, accessorIndex: number) {
   const details = getAccessorDetails(model, accessorIndex);
-  return new ScalarAccessor(
-      details.buffer, details.componentType, details.count, details.offset);
-  }
+  return new ScalarAccessor(details.buffer, details.componentType,
+                            details.count, details.offset);
+}
 
 function getVec2Accessor(model: Model, accessorIndex: number) {
   const details = getAccessorDetails(model, accessorIndex);
-  return new Vec2Accessor(
-      details.buffer, details.componentType, details.count, details.offset);
-  }
+  return new Vec2Accessor(details.buffer, details.componentType, details.count,
+                          details.offset);
+}
 
 function getVec3Accessor(model: Model, accessorIndex: number) {
   const details = getAccessorDetails(model, accessorIndex);
-  return new Vec3Accessor(
-      details.buffer, details.componentType, details.count, details.offset);
-  }
+  return new Vec3Accessor(details.buffer, details.componentType, details.count,
+                          details.offset);
+}
 
 function getAccessorDetails(model: Model, accessorIndex: number) {
   const accessor = model.accessors[accessorIndex];
   const view = model.bufferViews[accessor.bufferView];
   const buffer = model.buffers[view.buffer];
   return {
-    buffer: buffer,
+    buffer,
     componentType: accessor.componentType,
     count: accessor.count,
     offset: (accessor.byteOffset || 0) + (view.byteOffset || 0)
   };
-  }
+}
 
 function addVec3(accessor: Vec3Accessor, index: number, value: vec3): void {
-  let existingValue = accessor.get(index);
+  const existingValue = accessor.get(index);
   vec3.add(existingValue, existingValue, value);
   accessor.set(index, existingValue);
 }

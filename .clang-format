@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+AlignAfterOpenBracket: Align
+AlignOperands: true
+BinPackParameters: false
+ColumnLimit: 80
+SortIncludes: true

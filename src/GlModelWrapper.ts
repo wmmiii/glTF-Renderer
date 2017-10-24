@@ -5,14 +5,14 @@ import {Model} from './Model';
 export default class GlModelWrapper {
   model: Model;
 
-  buffers: {array: WebGLBuffer, element: WebGLBuffer}[];
+  buffers: Array<{array: WebGLBuffer, element: WebGLBuffer}>;
   buffersInitialized: boolean;
 
   textures: WebGLTexture[];
   texturesInitialized: boolean;
 
-  tangents: Array<Array<WebGLBuffer>>;
-  biTangents: Array<Array<WebGLBuffer>>;
+  tangents: WebGLBuffer[][];
+  biTangents: WebGLBuffer[][];
   tangentsInitialized: boolean;
 
   center: vec3;

@@ -2,7 +2,6 @@ import {mat4} from 'gl-matrix';
 
 import ShaderProgram from './ShaderProgram';
 
-
 const VERTEX_SHADER = `
 attribute vec2 aVertexPosition;
 
@@ -31,6 +30,20 @@ void main(void) {
 `;
 
 export default class SkyBoxShader extends ShaderProgram {
+  static create(
+      gl: WebGLRenderingContext, width: () => number, height: () => number) {
+    const shaderProgram =
+        ShaderProgram.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+    if (shaderProgram === null) {
+      throw new Error(
+          'Could not create shader program for model shader program!');
+    }
+    const shader = new SkyBoxShader(gl, shaderProgram, width, height);
+    shader.bindLocations();
+    shader.init();
+    return shader;
+  }
+
   private indicesBuffer: WebGLBuffer;
   private positionsBuffer: WebGLBuffer;
   private skyBoxTexture: WebGLTexture;
@@ -45,24 +58,11 @@ export default class SkyBoxShader extends ShaderProgram {
   private zDepth: number;
   private aspectRatio: number;
 
-  static create(
-      gl: WebGLRenderingContext, width: () => number, height: () => number) {
-    let shaderProgram =
-        ShaderProgram.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
-    if (shaderProgram === null) {
-      throw 'Could not create shader program for model shader program!';
-    };
-    let shader = new SkyBoxShader(gl, shaderProgram, width, height);
-    shader.bindLocations();
-    shader.init();
-    return shader;
-  };
-
   draw(modelViewMatrix: mat4) {
     const gl = this.gl;
     this.activate();
 
-    let itModelViewMatrix = mat4.create();
+    const itModelViewMatrix = mat4.create();
     mat4.invert(itModelViewMatrix, modelViewMatrix);
     mat4.transpose(itModelViewMatrix, itModelViewMatrix);
     gl.uniformMatrix4fv(this.itModelViewMatrix, false, itModelViewMatrix);
@@ -84,36 +84,15 @@ export default class SkyBoxShader extends ShaderProgram {
 
   bindSkyBoxTexture(texture: WebGLTexture) {
     this.skyBoxTexture = texture;
-  };
+  }
 
   setFov(fov: number) {
     this.zDepth = 1.0 / Math.sin(fov / 2.0);
-  };
+  }
 
   setAspect(ratio: number) {
     this.aspectRatio = ratio;
   }
-
-  private init() {
-    const gl = this.gl;
-    this.activate();
-
-    let vertexPosition = gl.createBuffer();
-    if (vertexPosition === null) {
-      throw 'Could not create buffer for sky box renderer!';
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosition);
-    gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
-    this.positionsBuffer = vertexPosition;
-
-    let indicesBuffer = gl.createBuffer();
-    if (indicesBuffer === null) {
-      throw 'Could not create index buffer for sky box renderer!';
-    }
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
-    this.indicesBuffer = indicesBuffer;
-  };
 
   protected bindLocations(): void {
     this.vertexPosition = this.findAttributeOrThrow('aVertexPosition');
@@ -122,9 +101,29 @@ export default class SkyBoxShader extends ShaderProgram {
     this.zDepthLocation = this.findUniformOrThrow('uZDepth');
     this.aspectLocation = this.findUniformOrThrow('uAspectRatio');
     this.skyBoxSampler = this.findUniformOrThrow('uSkyBoxSampler');
-  };
-};
+  }
 
+  private init() {
+    const gl = this.gl;
+    this.activate();
+
+    const vertexPosition = gl.createBuffer();
+    if (vertexPosition === null) {
+      throw new Error('Could not create buffer for sky box renderer!');
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosition);
+    gl.bufferData(gl.ARRAY_BUFFER, POSITIONS, gl.STATIC_DRAW);
+    this.positionsBuffer = vertexPosition;
+
+    const indicesBuffer = gl.createBuffer();
+    if (indicesBuffer === null) {
+      throw new Error('Could not create index buffer for sky box renderer!');
+    }
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, INDICES, gl.STATIC_DRAW);
+    this.indicesBuffer = indicesBuffer;
+  }
+}
 
 const INDICES = new Uint8Array([0, 1, 2, 0, 2, 3]);
 

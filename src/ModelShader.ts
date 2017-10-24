@@ -65,30 +65,40 @@ uniform sampler2D uBrdfSampler;
 uniform highp vec3 uEmissiveFactor;
 
 void main(void) {
-  highp vec4 normalOriginal = vec4(normalize(texture2D(uNormalSampler, vTextureCoord).xyz * 2.0 - vec3(1.0, 1.0, 1.0)), 1.0);
-  highp mat4 normalTransform = mat4(vec4(normalize(vTangent), 0), vec4(normalize(vBiTangent), 0), vec4(normalize(vNormal), 0), vec4(0, 0, 0, 1));
+  highp vec4 normalOriginal =
+      vec4(normalize(texture2D(uNormalSampler, vTextureCoord).xyz * 2.0
+      - vec3(1.0, 1.0, 1.0)), 1.0);
+  highp mat4 normalTransform =
+      mat4(vec4(normalize(vTangent), 0), vec4(normalize(vBiTangent), 0),
+           vec4(normalize(vNormal), 0), vec4(0, 0, 0, 1));
   highp vec3 normal = normalize(vec3(normalTransform * normalOriginal));
 
-  highp vec4 metallicRoughness = texture2D(uMetallicRoughnessSampler, vTextureCoord);
+  highp vec4 metallicRoughness =
+      texture2D(uMetallicRoughnessSampler, vTextureCoord);
   highp float metallic = metallicRoughness.b;
   highp float roughness = metallicRoughness.g;
 
-  highp vec4 brdf = texture2D(uBrdfSampler, vec2(dot(-vFromCamera, normal), 1.0 - roughness));
+  highp vec4 brdf =
+      texture2D(uBrdfSampler, vec2(dot(-vFromCamera, normal), 1.0 - roughness));
 
   highp vec3 refVec = vFromCamera - 2.0 * (normal * dot(vFromCamera, normal));
   refVec *= vec3(1.0, 1.0, -1.0);
-  highp vec3 diffLight = textureCube(uEnvironmentSampler, normalize(refVec), 10.0).rgb;
-  highp vec3 specLight = textureCube(uEnvironmentSampler, normalize(refVec), 0.0).rgb;
+  highp vec3 diffLight =
+      textureCube(uEnvironmentSampler, normalize(refVec), 10.0).rgb;
+  highp vec3 specLight =
+      textureCube(uEnvironmentSampler, normalize(refVec), 0.0).rgb;
 
   highp vec4 baseCol = texture2D(uBaseSampler, vTextureCoord);
 
-  highp vec3 diffCol = mix(baseCol.rgb * (1.0 - dielectricSpecular.r), black, metallic);
+  highp vec3 diffCol =
+      mix(baseCol.rgb * (1.0 - dielectricSpecular.r), black, metallic);
   highp vec3 specCol = mix(dielectricSpecular, baseCol.rgb, metallic);
-  
+
   highp vec3 emissiveCol = texture2D(uEmissiveSampler, vTextureCoord).rgb;
   emissiveCol *= uEmissiveFactor;
 
-  highp vec3 finalColor = (diffCol * diffLight) + (specLight * (specCol * brdf.x + brdf.y)) + emissiveCol;
+  highp vec3 finalColor = (diffCol * diffLight) +
+      (specLight * (specCol * brdf.x + brdf.y)) + emissiveCol;
   finalColor *= 1.2;
 
   gl_FragColor = vec4(finalColor, 1.0);
@@ -96,6 +106,24 @@ void main(void) {
 `;
 
 export default class ModelShader extends ShaderProgram {
+  static create(
+      gl: WebGLRenderingContext, width: () => number, height: () => number) {
+    const shaderProgram =
+        ShaderProgram.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
+    if (shaderProgram === null) {
+      throw new Error(
+          'Could not create shader program for model shader program!');
+    }
+    const shader = new ModelShader(gl, shaderProgram, width, height);
+    shader.bindLocations();
+
+    const brdfImage = new Image();
+    brdfImage.src = 'images/brdf.png';
+    shader.brdfTexture =
+        createTexture(gl, brdfImage, [1.0, 0.0, 0.0, 1.0], false);
+    return shader;
+  }
+
   private indexType: number;
   private indexOffset: number;
   private indexCount: number;
@@ -121,28 +149,11 @@ export default class ModelShader extends ShaderProgram {
   private brdfTexture: WebGLTexture;
   private brdfSampler: WebGLUniformLocation;
 
-  static create(
-      gl: WebGLRenderingContext, width: () => number, height: () => number) {
-    let shaderProgram =
-        ShaderProgram.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
-    if (shaderProgram === null) {
-      throw 'Could not create shader program for model shader program!';
-    };
-    let shader = new ModelShader(gl, shaderProgram, width, height);
-    shader.bindLocations();
-
-    const brdfImage = new Image();
-    brdfImage.src = 'images/brdf.png';
-    shader.brdfTexture =
-        createTexture(gl, brdfImage, [1.0, 0.0, 0.0, 1.0], false);
-    return shader;
-  };
-
   draw(mode = WebGLRenderingContext.TRIANGLES): void {
     this.bindBrdfTexture();
     this.gl.drawElements(
         mode, this.indexCount, this.indexType, this.indexOffset);
-  };
+  }
 
   setIndices(buffer: WebGLBuffer, type: number, count: number, offset: number) {
     const gl = this.gl;
@@ -151,7 +162,7 @@ export default class ModelShader extends ShaderProgram {
     this.indexType = type;
     this.indexCount = count;
     this.indexOffset = offset;
-  };
+  }
 
   bindVertexPosition(
       buffer: WebGLBuffer, componentType: number, byteStride: number,
@@ -159,7 +170,7 @@ export default class ModelShader extends ShaderProgram {
     this.bindAttribute(
         buffer, this.vertexPosition, 3, componentType, false, byteStride,
         byteOffset);
-  };
+  }
 
   bindVertexNormal(
       buffer: WebGLBuffer, componentType: number, byteStride: number,
@@ -167,7 +178,7 @@ export default class ModelShader extends ShaderProgram {
     this.bindAttribute(
         buffer, this.vertexNormal, 3, componentType, true, byteStride,
         byteOffset);
-  };
+  }
 
   bindVertexTangent(
       buffer: WebGLBuffer, componentType: number, byteStride: number,
@@ -175,7 +186,7 @@ export default class ModelShader extends ShaderProgram {
     this.bindAttribute(
         buffer, this.vertexTangent, 3, componentType, true, byteStride,
         byteOffset);
-  };
+  }
 
   bindVertexBiTangent(
       buffer: WebGLBuffer, componentType: number, byteStride: number,
@@ -183,7 +194,7 @@ export default class ModelShader extends ShaderProgram {
     this.bindAttribute(
         buffer, this.vertexBiTangent, 3, componentType, true, byteStride,
         byteOffset);
-  };
+  }
 
   bindVertexTexCoord(
       buffer: WebGLBuffer, componentType: number, byteStride: number,
@@ -191,44 +202,44 @@ export default class ModelShader extends ShaderProgram {
     this.bindAttribute(
         buffer, this.vertexTexCoord, 2, componentType, false, byteStride,
         byteOffset);
-  };
+  }
 
   setProjectionMatrix(projectionMatrix: mat4) {
     this.gl.uniformMatrix4fv(this.projectionMatrix, false, projectionMatrix);
-  };
+  }
 
   setModelViewMatrix(modelViewMatrix: mat4) {
     this.gl.uniformMatrix4fv(this.modelViewMatrix, false, modelViewMatrix);
 
-    let itModelViewMatrix = mat4.create();
+    const itModelViewMatrix = mat4.create();
     mat4.invert(itModelViewMatrix, modelViewMatrix);
     mat4.transpose(itModelViewMatrix, itModelViewMatrix);
     this.gl.uniformMatrix4fv(this.itModelViewMatrix, false, itModelViewMatrix);
-  };
+  }
 
   bindBaseTexture(texture: WebGLTexture) {
     this.bindTexture(texture, this.baseSampler, 0);
-  };
+  }
 
   bindMetallicRoughnessTexture(texture: WebGLTexture) {
     this.bindTexture(texture, this.metallicRoughnessSampler, 1);
-  };
+  }
 
   bindEmissiveTexture(texture: WebGLTexture) {
     this.bindTexture(texture, this.emissiveSampler, 2);
-  };
+  }
 
   setEmissiveFactor(factor: number[]) {
     this.gl.uniform3fv(this.emissiveFactor, factor);
-  };
+  }
 
   bindNormalTexture(texture: WebGLTexture) {
     this.bindTexture(texture, this.normalSampler, 3);
-  };
+  }
 
   bindEnvironmentTexture(texture: WebGLTexture) {
     this.bindCubeMap(texture, this.environmentSampler, 4);
-  };
+  }
 
   protected bindLocations(): void {
     this.vertexPosition = this.findAttributeOrThrow('aVertexPosition');
@@ -252,9 +263,9 @@ export default class ModelShader extends ShaderProgram {
 
     this.environmentSampler = this.findUniformOrThrow('uEnvironmentSampler');
     this.brdfSampler = this.findUniformOrThrow('uBrdfSampler');
-  };
+  }
 
   private bindBrdfTexture() {
     this.bindTexture(this.brdfTexture, this.brdfSampler, 5);
-  };
-};
+  }
+}
