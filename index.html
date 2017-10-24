@@ -17,46 +17,79 @@
       width: 100%;
     }
 
-    #attribution {
+    .attribution,
+    .options {
       background-color: #222222;
-      border-bottom-right-radius: 5px;
-      box-shadow: inset -5px -5px 5px -5px rgba(0, 0, 0, 0.8);
       color: #ffffff;
-      left: 0;
       padding: 10px;
       pointer-events: none;
       position: fixed;
+    }
+
+    .attribution {
+      border-bottom-right-radius: 5px;
+      box-shadow: inset -5px -5px 5px -5px rgba(0, 0, 0, 0.9);
+      left: 0;
       top: 0;
     }
 
-    #attribution a {
+    .attribution a,
+    .attribution a:active,
+    .attribution a:hover,
+    .attribution a:visited {
+      color: #ffffff;
       pointer-events: all;
     }
 
-    #attribution a:active,
-    #attribution a:hover,
-    #attribution a:visited {
-      color: #ffffff;
-    }
-
-    #attribution ul {
+    .attribution ul {
       list-style: none;
       margin: 0;
       padding: 0;
     }
 
-    #attribution li {
+    .attribution li {
       margin: 5px 0;
     }
 
-    #attribution li.large {
+    .attribution li.large {
       font-size: 16px;
     }
+
+    .options {
+      border-bottom-left-radius: 5px;
+      box-shadow: inset 5px -5px 5px -5px rgba(0, 0, 0, 0.9);
+      right: 0;
+      top: 0;
+    }
+
+    .options select {
+      pointer-events: all;
+    }
+
+    canvas {
+      cursor: move;
+      cursor: grab;
+      cursor: -moz-grab;
+      cursor: -webkit-grab;
+    }
+
+    canvas.grabbing {
+      cursor: move;
+      cursor: grabbing;
+      cursor: -moz-grabbing;
+      cursor: -webkit-grabbing;
+    }
   </style>
+
+  <!-- Dependencies -->
+  <script src="./node_modules/react/umd/react.development.js"></script>
+  <script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
 </head>
 
 <body>
-  <div id="attribution">
+  <div id="app">
+  </div>
+  <!-- <div id="attribution">
     <ul>
       <li class="large">
         <a href="https://github.com/wmmiii/glTF-Renderer">glTF Renderer</a>
@@ -70,9 +103,19 @@
       <li>
         Skyboxes by
         <a href="http://www.humus.name/index.php?page=Textures&start=0">Humus</a>
+        and Hipshot
       </li>
     </ul>
-  </div>
+  </div> -->
+  <!-- <div id="options">
+    <label for="sky-box-select">Sky Box</label>
+    <select id="sky-box-select">
+      <option value="images/NissiBeach.jpg">Beach</option>
+      <option value="images/StormyDays.jpg">Clouds</option>
+      <option value="images/FootballField.jpg">Snowy</option>
+      <option value="images/Yokohama.jpg" selected>Yokohama</option>
+    </select>
+  </div> -->
   <canvas id="glCanvas" width="1280" height="960"></canvas>
   <script src="build/main.js"></script>
 </body>

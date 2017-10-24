@@ -6,10 +6,17 @@ import ModelRenderer from './ModelRenderer';
 import {fetchImage} from './ResourceFetcher';
 import {createSkyBox} from './SkyBoxCreator';
 import SkyBoxShader from './SkyBoxShader';
+import * as App from './ui/App';
+import {Author, ModelDetail, SkyBoxDetail} from './ui/Details';
 
+let gl: WebGLRenderingContext;
+let cubeMap: CubeMap;
 let skyBoxShader: SkyBoxShader;
 let modelRenderer: ModelRenderer;
 let modelLoader: GltfLoader;
+
+let currentModel: number;
+let loadedModels: {[key: string]: number} = {};
 
 // TODO: Make functions more generic and refactor into modules.
 // TODO: Add documentation comments on all functions, classes, and interfaces.
@@ -17,7 +24,6 @@ let modelLoader: GltfLoader;
 const FOV = 45 * Math.PI / 180;
 
 var then = 0;
-var squareRotation = 0.0;
 let xRot: number = Math.PI;
 let yRot: number = Math.PI / 2;
 let xVel: number = 0;
@@ -30,7 +36,7 @@ let yLastFrame: number = 0;
 
 let zoom: number = 2;
 
-function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
+function drawScene(gl: WebGLRenderingContext) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
   gl.clearDepth(1.0);                 // Clear everything
   gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -90,13 +96,14 @@ function drawScene(gl: WebGLRenderingContext, cubeMap: CubeMap) {
 
 /** Does what it says on the tin. */
 function main() {
-  const canvas = <HTMLCanvasElement>document.getElementById('glCanvas');
+  const canvas = document.getElementById('glCanvas') as HTMLCanvasElement;
   // Initialize the GL context
-  const gl = canvas.getContext('webgl');
-  if (gl === null) {
+  const canvasContext = canvas.getContext('webgl');
+  if (canvasContext === null) {
     console.error('Unable to initialize GL context!');
     return;
-  };
+  }
+  gl = canvasContext;
 
   modelLoader = new GltfLoader();
   modelRenderer =
@@ -116,7 +123,7 @@ function main() {
 
   modelLoader.loadGltf(helmet)
       .then((model) => {
-        modelRenderer.registerModel(model);
+        loadedModels[helmet] = modelRenderer.registerModel(model);
       })
       .then(() => {
         return fetchImage('images/Yokohama.jpg');
@@ -124,24 +131,20 @@ function main() {
       .then((data: HTMLImageElement) => {
         return createSkyBox(gl, data);
       })
-      .then((cubeMap: CubeMap) => {
-        skyBoxShader.bindSkyBoxTexture(cubeMap);
+      .then((skyBox: CubeMap) => {
+        cubeMap = skyBox;
+        skyBoxShader.bindSkyBoxTexture(skyBox);
         let render = (now: number) => {
           now *= 0.001;
-          const deltaTime = now - then;
           then = now;
 
-          squareRotation += deltaTime;
-
-          drawScene(gl, cubeMap);
+          drawScene(gl);
           requestAnimationFrame(render);
         };
 
         requestAnimationFrame(render);
       });
 };
-
-document.body.onload = main;
 
 const canvas = document.getElementsByTagName('canvas')[0];
 canvas.style.cursor = 'grab';
@@ -152,11 +155,11 @@ canvas.addEventListener('mousedown', (event: MouseEvent) => {
   xLastFrame = event.x;
   yCurrent = event.y;
   yLastFrame = event.y;
-  canvas.style.cursor = 'grabbing';
+  canvas.classList.add('grabbing');
 });
 let endDrag = () => {
   dragging = false;
-  canvas.style.cursor = 'grab';
+  canvas.classList.remove('grabbing');
 };
 canvas.addEventListener('mouseup', endDrag);
 canvas.addEventListener('mouseout', endDrag);
@@ -171,3 +174,54 @@ canvas.addEventListener('mousemove', (event: MouseEvent) => {
 canvas.addEventListener('mousewheel', (event: WheelEvent) => {
   zoom -= event.wheelDeltaY / 1000;
 });
+
+const models: ModelDetail[] = [{
+  title: 'Damaged Helmet',
+  url:
+      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+  creator:
+      {name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_'}
+}];
+
+const humus: Author = {
+  name: 'Humus',
+  url: 'http://www.humus.name/index.php?page=Textures&start=0'
+};
+
+const hipshot: Author = {
+  name: 'Hipshot',
+  url: '#'
+};
+
+const skyBoxes: SkyBoxDetail[] = [
+  {title: 'Beach', url: 'images/NissiBeach.jpg', creator: humus},
+  {title: 'Clouds', url: 'images/StormyDays.jpg', creator: hipshot},
+  {title: 'Snowy', url: 'images/FootballField.jpg', creator: humus},
+  {title: 'Yokohama', url: 'images/Yokohama.jpg', creator: humus}
+];
+
+App.initializeApp(
+    models, 0,
+    (modelUrl: string) => {
+      if (loadedModels[modelUrl] !== undefined) {
+        currentModel = loadedModels[modelUrl];
+      } else {
+        modelLoader.loadGltf(modelUrl).then((model) => {
+          loadedModels[modelUrl] = modelRenderer.registerModel(model);
+          currentModel = loadedModels[modelUrl];
+        });
+      }
+    },
+    skyBoxes, 3,
+    (skyBoxUrl: string) => {
+      return fetchImage(skyBoxUrl)
+          .then((data: HTMLImageElement) => {
+            return createSkyBox(gl, data);
+          })
+          .then((skyBox: CubeMap) => {
+            cubeMap = skyBox;
+            skyBoxShader.bindSkyBoxTexture(skyBox);
+          });
+    });
+
+document.body.onload = main;
