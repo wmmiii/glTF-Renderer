@@ -11,6 +11,10 @@ export default class ModelRenderer {
   private shader: ModelShader;
   private modelWrappers: GlModelWrapper[];
 
+  private emissiveDefault: WebGLTexture;
+  private emissiveFactorDefault: number[];
+  private normalDefault: WebGLTexture;
+
   static create(
       gl: WebGLRenderingContext, width: () => number, height: () => number) {
     let renderer = new ModelRenderer(gl);
@@ -21,10 +25,32 @@ export default class ModelRenderer {
   private constructor(gl: WebGLRenderingContext) {
     this.gl = gl;
     this.modelWrappers = [];
+
+    const emissiveDefault = gl.createTexture();
+    if (emissiveDefault === null) {
+      throw 'Could not create default emissive texture!';
+    }
+    this.emissiveDefault = emissiveDefault;
+    gl.bindTexture(gl.TEXTURE_2D, this.emissiveDefault);
+    gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([0, 0, 0, 1]));
+
+    this.emissiveFactorDefault = [0, 0, 0];
+
+    const normalDefault = gl.createTexture();
+    if (normalDefault === null) {
+      throw 'Could not create default emissive texture!';
+    }
+    this.normalDefault = normalDefault;
+    gl.bindTexture(gl.TEXTURE_2D, this.normalDefault);
+    gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([0.5, 0.5, 1, 1]));
   }
 
   registerModel(model: Model): number {
-    return this.modelWrappers.push(new GlModelWrapper(model));
+    return this.modelWrappers.push(new GlModelWrapper(model)) - 1;
   }
 
   renderModel(
@@ -51,17 +77,22 @@ export default class ModelRenderer {
         This code allows primitives to orient themselves to a scene. It does not
         seem useful yet so I'm commenting it out in favor of using the raw model
         view matrix.
-
-        let primitiveViewMatrix = mat4.create();
-
-        let identity = mat4.create();
-        mat4.identity(identity);
-        mat4.rotate(
-            primitiveViewMatrix, identity, node.rotation[3], node.rotation);
-        mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
         */
+        let primitiveViewMatrix: mat4;
+        primitiveViewMatrix = mat4.create();
+        const shift = vec3.create();
+        vec3.negate(shift, modelWrapper.center);
+        mat4.translate(primitiveViewMatrix, primitiveViewMatrix, shift);
 
-        shader.setModelViewMatrix(modelViewMatrix);
+        if (node.rotation) {
+          let identity = mat4.create();
+          mat4.identity(identity);
+          mat4.rotate(
+              primitiveViewMatrix, identity, node.rotation[3], node.rotation);
+        }
+        mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
+
+        shader.setModelViewMatrix(primitiveViewMatrix);
 
         mesh.primitives.forEach((primitive, primitiveIndex) => {
           // Position
@@ -96,11 +127,26 @@ export default class ModelRenderer {
           shader.bindMetallicRoughnessTexture(
               modelWrapper.textures[material.pbrMetallicRoughness
                                         .metallicRoughnessTexture.index]);
-          shader.bindNormalTexture(
-              modelWrapper.textures[material.normalTexture.index]);
-          shader.bindEmissiveTexture(
-              modelWrapper.textures[material.emissiveTexture.index]);
-          shader.setEmissiveFactor(material.emissiveFactor);
+
+          if (material.normalTexture !== undefined) {
+            shader.bindNormalTexture(
+                modelWrapper.textures[material.normalTexture.index]);
+          } else {
+            shader.bindNormalTexture(this.normalDefault);
+            }
+
+          if (material.emissiveTexture !== undefined) {
+            shader.bindEmissiveTexture(
+                modelWrapper.textures[material.emissiveTexture.index]);
+          } else {
+            shader.bindEmissiveTexture(this.emissiveDefault);
+            }
+
+          if (material.emissiveFactor !== undefined) {
+            shader.setEmissiveFactor(material.emissiveFactor);
+          } else {
+            shader.setEmissiveFactor(this.emissiveFactorDefault);
+          }
 
           // Cubemap
           shader.bindEnvironmentTexture(cubeMap);
@@ -193,6 +239,13 @@ export default class ModelRenderer {
     if (!modelWrapper.tangentsInitialized) {
       const model = modelWrapper.model;
 
+      let maxX = Number.MIN_VALUE;
+      let minX = Number.MAX_VALUE;
+      let maxY = Number.MIN_VALUE;
+      let minY = Number.MAX_VALUE;
+      let maxZ = Number.MIN_VALUE;
+      let minZ = Number.MAX_VALUE;
+
       model.meshes.forEach((mesh, meshIndex) => {
         mesh.primitives.forEach((primitive, primitiveIndex) => {
           if (model.materials[primitive.material].normalTexture != undefined) {
@@ -239,6 +292,13 @@ export default class ModelRenderer {
               const m1 = positions.get(i1);
               const m2 = positions.get(i2);
               const m3 = positions.get(i3);
+
+              maxX = Math.max(m1[0], m2[0], m3[0], maxX);
+              maxY = Math.max(m1[1], m2[1], m3[1], maxY);
+              maxZ = Math.max(m1[2], m2[2], m3[2], maxZ);
+              minX = Math.min(m1[0], m2[0], m3[0], minX);
+              minY = Math.min(m1[1], m2[1], m3[1], minY);
+              minZ = Math.min(m1[2], m2[2], m3[2], minZ);
 
               // Find A and B in model space.
               let aM = vec3.create();
@@ -305,6 +365,10 @@ export default class ModelRenderer {
           }
         });
       });
+
+      modelWrapper.center = vec3.fromValues(
+          maxX + minX / 2.0, maxY + minY / 2.0, maxZ + minZ / 2.0);
+      console.log(modelWrapper.center);
 
       modelWrapper.tangentsInitialized = true;
     }

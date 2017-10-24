@@ -42,11 +42,11 @@ export interface Buffer {
   }
 
 export interface Material {
-  emissiveFactor: [number, number, number];
-  emissiveTexture: TextureReference;
+  emissiveFactor?: [number, number, number];
+  emissiveTexture?: TextureReference;
   name: string;
-  normalTexture: TextureReference;
-  occlusionTexture: TextureReference;
+  normalTexture?: TextureReference;
+  occlusionTexture?: TextureReference;
   pbrMetallicRoughness: {
     baseColorTexture: TextureReference;
     metallicRoughnessTexture: TextureReference;
