@@ -150,12 +150,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__gl_matrix_mat3__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__gl_matrix_mat4__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__gl_matrix_quat__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__gl_matrix_vec2__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__gl_matrix_vec3__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__gl_matrix_vec4__ = __webpack_require__(5);
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "glMatrix", function() { return __WEBPACK_IMPORTED_MODULE_0__gl_matrix_common__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2", function() { return __WEBPACK_IMPORTED_MODULE_1__gl_matrix_mat2__; });
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mat2d", function() { return __WEBPACK_IMPORTED_MODULE_2__gl_matrix_mat2d__; });
@@ -207,6 +207,12 @@ THE SOFTWARE. */
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports) {
+
+module.exports = React;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1014,7 +1020,7 @@ const sub = subtract;
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1854,7 +1860,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2516,7 +2522,7 @@ const forEach = (function() {
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -2567,7 +2573,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -2658,7 +2664,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports) {
@@ -2727,16 +2733,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
 
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-module.exports = React;
-
-/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(15), __webpack_require__(16), __webpack_require__(5), __webpack_require__(21), __webpack_require__(22), __webpack_require__(23)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, GltfLoader_1, ModelRenderer_1, ResourceFetcher_1, SkyBoxCreator_1, SkyBoxShader_1, App) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(15), __webpack_require__(16), __webpack_require__(6), __webpack_require__(21), __webpack_require__(22), __webpack_require__(23)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, GltfLoader_1, ModelRenderer_1, ResourceFetcher_1, SkyBoxCreator_1, SkyBoxShader_1, App) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     let gl;
@@ -2744,7 +2744,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     let skyBoxShader;
     let modelRenderer;
     let modelLoader;
-    let currentModel;
+    let currentModel = 0;
     let loadedModels = {};
     // TODO: Make functions more generic and refactor into modules.
     // TODO: Add documentation comments on all functions, classes, and interfaces.
@@ -2770,7 +2770,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         const projectionMatrix = gl_matrix_1.mat4.create();
         gl_matrix_1.mat4.perspective(projectionMatrix, FOV, // FOV
         aspectRatio, // Aspect
-        0.1, // Z-Near
+        0.01, // Z-Near
         100.0); // Z-Far
         const viewMatrix = gl_matrix_1.mat4.create();
         gl_matrix_1.mat4.translate(viewMatrix, viewMatrix, [0.0, 0.0, -Math.pow(2, zoom)]);
@@ -2794,8 +2794,9 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         else if (yRot < 0) {
             yRot = 0;
         }
-        gl_matrix_1.mat4.rotate(modelViewMatrix, viewMatrix, yRot, [1, 0, 0]);
-        gl_matrix_1.mat4.rotate(modelViewMatrix, modelViewMatrix, xRot, [0, 0, 1]);
+        gl_matrix_1.mat4.rotate(modelViewMatrix, viewMatrix, -Math.PI / 2.0, [1, 0, 0]);
+        gl_matrix_1.mat4.rotate(modelViewMatrix, modelViewMatrix, yRot, [1, 0, 0]);
+        gl_matrix_1.mat4.rotate(modelViewMatrix, modelViewMatrix, -xRot, [0, 1, 0]);
         gl.clearColor(1.0, 0.0, 0.0, 1.0);
         gl.clearDepth(1.0);
         gl.disable(gl.DEPTH_TEST);
@@ -2805,7 +2806,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         gl.clearDepth(1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
-        modelRenderer.renderModel(0, projectionMatrix, modelViewMatrix, cubeMap);
+        modelRenderer.renderModel(currentModel, projectionMatrix, modelViewMatrix, cubeMap);
     }
     ;
     /** Does what it says on the tin. */
@@ -2823,13 +2824,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
             ModelRenderer_1.default.create(gl, () => canvas.width, () => canvas.height);
         skyBoxShader =
             SkyBoxShader_1.default.create(gl, () => canvas.width, () => canvas.height);
-        // const normalTest =
-        // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf';
         const helmet = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
-        // const fish =
-        // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf';
-        // const corset =
-        // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf';
         modelLoader.loadGltf(helmet)
             .then((model) => {
             loadedModels[helmet] = modelRenderer.registerModel(model);
@@ -2879,11 +2874,25 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
     canvas.addEventListener('mousewheel', (event) => {
         zoom -= event.wheelDeltaY / 1000;
     });
-    const models = [{
+    const models = [
+        {
+            title: 'Corset',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf'
+        },
+        {
             title: 'Damaged Helmet',
             url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
             creator: { name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_' }
-        }];
+        },
+        {
+            title: 'Fish',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
+        },
+        {
+            title: 'Normal Test',
+            url: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf'
+        }
+    ];
     const humus = {
         name: 'Humus',
         url: 'http://www.humus.name/index.php?page=Textures&start=0'
@@ -5655,9 +5664,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (immutable) */ __webpack_exports__["fromEuler"] = fromEuler;
 /* harmony export (immutable) */ __webpack_exports__["str"] = str;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__common__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__mat3__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vec3__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__vec4__ = __webpack_require__(5);
 /* Copyright (c) 2015, Brandon Jones, Colin MacKenzie IV.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -6971,7 +6980,7 @@ const forEach = (function() {
 /* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(5)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, ResourceFetcher_1) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, ResourceFetcher_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class GltfLoader {
@@ -7045,9 +7054,24 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         constructor(gl) {
             this.gl = gl;
             this.modelWrappers = [];
+            const emissiveDefault = gl.createTexture();
+            if (emissiveDefault === null) {
+                throw 'Could not create default emissive texture!';
+            }
+            this.emissiveDefault = emissiveDefault;
+            gl.bindTexture(gl.TEXTURE_2D, this.emissiveDefault);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 1]));
+            this.emissiveFactorDefault = [0, 0, 0];
+            const normalDefault = gl.createTexture();
+            if (normalDefault === null) {
+                throw 'Could not create default emissive texture!';
+            }
+            this.normalDefault = normalDefault;
+            gl.bindTexture(gl.TEXTURE_2D, this.normalDefault);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0.5, 0.5, 1, 1]));
         }
         registerModel(model) {
-            return this.modelWrappers.push(new GlModelWrapper_1.default(model));
+            return this.modelWrappers.push(new GlModelWrapper_1.default(model)) - 1;
         }
         renderModel(id, projectionMatrix, modelViewMatrix, cubeMap) {
             const modelWrapper = this.modelWrappers[id];
@@ -7066,16 +7090,19 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                     This code allows primitives to orient themselves to a scene. It does not
                     seem useful yet so I'm commenting it out in favor of using the raw model
                     view matrix.
-            
-                    let primitiveViewMatrix = mat4.create();
-            
-                    let identity = mat4.create();
-                    mat4.identity(identity);
-                    mat4.rotate(
-                        primitiveViewMatrix, identity, node.rotation[3], node.rotation);
-                    mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
                     */
-                    shader.setModelViewMatrix(modelViewMatrix);
+                    let primitiveViewMatrix;
+                    primitiveViewMatrix = gl_matrix_1.mat4.create();
+                    const shift = gl_matrix_1.vec3.create();
+                    gl_matrix_1.vec3.negate(shift, modelWrapper.center);
+                    gl_matrix_1.mat4.translate(primitiveViewMatrix, primitiveViewMatrix, shift);
+                    if (node.rotation) {
+                        let identity = gl_matrix_1.mat4.create();
+                        gl_matrix_1.mat4.identity(identity);
+                        gl_matrix_1.mat4.rotate(primitiveViewMatrix, identity, node.rotation[3], node.rotation);
+                    }
+                    gl_matrix_1.mat4.mul(primitiveViewMatrix, modelViewMatrix, primitiveViewMatrix);
+                    shader.setModelViewMatrix(primitiveViewMatrix);
                     mesh.primitives.forEach((primitive, primitiveIndex) => {
                         // Position
                         this.bindModelVertexAttribute(shader.bindVertexPosition.bind(shader), primitive.attributes.POSITION, modelWrapper);
@@ -7095,9 +7122,24 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                             .baseColorTexture.index]);
                         shader.bindMetallicRoughnessTexture(modelWrapper.textures[material.pbrMetallicRoughness
                             .metallicRoughnessTexture.index]);
-                        shader.bindNormalTexture(modelWrapper.textures[material.normalTexture.index]);
-                        shader.bindEmissiveTexture(modelWrapper.textures[material.emissiveTexture.index]);
-                        shader.setEmissiveFactor(material.emissiveFactor);
+                        if (material.normalTexture !== undefined) {
+                            shader.bindNormalTexture(modelWrapper.textures[material.normalTexture.index]);
+                        }
+                        else {
+                            shader.bindNormalTexture(this.normalDefault);
+                        }
+                        if (material.emissiveTexture !== undefined) {
+                            shader.bindEmissiveTexture(modelWrapper.textures[material.emissiveTexture.index]);
+                        }
+                        else {
+                            shader.bindEmissiveTexture(this.emissiveDefault);
+                        }
+                        if (material.emissiveFactor !== undefined) {
+                            shader.setEmissiveFactor(material.emissiveFactor);
+                        }
+                        else {
+                            shader.setEmissiveFactor(this.emissiveFactorDefault);
+                        }
                         // Cubemap
                         shader.bindEnvironmentTexture(cubeMap);
                         // Indices
@@ -7163,6 +7205,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         initTangents(modelWrapper) {
             if (!modelWrapper.tangentsInitialized) {
                 const model = modelWrapper.model;
+                let maxX = Number.MIN_VALUE;
+                let minX = Number.MAX_VALUE;
+                let maxY = Number.MIN_VALUE;
+                let minY = Number.MAX_VALUE;
+                let maxZ = Number.MIN_VALUE;
+                let minZ = Number.MAX_VALUE;
                 model.meshes.forEach((mesh, meshIndex) => {
                     mesh.primitives.forEach((primitive, primitiveIndex) => {
                         if (model.materials[primitive.material].normalTexture != undefined) {
@@ -7198,6 +7246,12 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                                 const m1 = positions.get(i1);
                                 const m2 = positions.get(i2);
                                 const m3 = positions.get(i3);
+                                maxX = Math.max(m1[0], m2[0], m3[0], maxX);
+                                maxY = Math.max(m1[1], m2[1], m3[1], maxY);
+                                maxZ = Math.max(m1[2], m2[2], m3[2], maxZ);
+                                minX = Math.min(m1[0], m2[0], m3[0], minX);
+                                minY = Math.min(m1[1], m2[1], m3[1], minY);
+                                minZ = Math.min(m1[2], m2[2], m3[2], minZ);
                                 // Find A and B in model space.
                                 let aM = gl_matrix_1.vec3.create();
                                 gl_matrix_1.vec3.sub(aM, m2, m1);
@@ -7249,6 +7303,8 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
                         }
                     });
                 });
+                modelWrapper.center = gl_matrix_1.vec3.fromValues(maxX + minX / 2.0, maxY + minY / 2.0, maxZ + minZ / 2.0);
+                console.log(modelWrapper.center);
                 modelWrapper.tangentsInitialized = true;
             }
         }
@@ -7476,7 +7532,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// TODO: Use glT
 /* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(6), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, ShaderProgram_1, ShaderUtils_1) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(7), __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, ShaderProgram_1, ShaderUtils_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const VERTEX_SHADER = `
@@ -7688,7 +7744,7 @@ void main(void) {
 /* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, ShaderUtils_1) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, ShaderUtils_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const SKYBOX_SIZE = 2048;
@@ -7876,7 +7932,7 @@ void main(void) {
 /* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(6)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, ShaderProgram_1) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(1), __webpack_require__(7)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, gl_matrix_1, ShaderProgram_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const VERTEX_SHADER = `
@@ -7983,7 +8039,7 @@ void main(void) {
 /* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8), __webpack_require__(25), __webpack_require__(26), __webpack_require__(24)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React, ReactDom, Attribution_1, Options_1) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2), __webpack_require__(24), __webpack_require__(25), __webpack_require__(26)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React, ReactDom, Attribution_1, Options_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class App extends React.Component {
@@ -8007,7 +8063,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         render() {
             return React.createElement("div", null,
                 React.createElement(Attribution_1.default, { skyBoxCreator: this.state.currentSkyBox.creator }),
-                React.createElement(Options_1.default, { skyBoxes: this.props.skyBoxes, defaultSkyBox: this.props.defaultSkyBox, onSkyBoxChange: this.handleSkyBoxChange, models: [] }));
+                React.createElement(Options_1.default, { models: this.props.models, defaultModel: this.props.defaultModel, onModelChange: this.handleModelChange, skyBoxes: this.props.skyBoxes, defaultSkyBox: this.props.defaultSkyBox, onSkyBoxChange: this.handleSkyBoxChange }));
         }
     }
     exports.App = App;
@@ -8021,80 +8077,15 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
 
 /***/ }),
 /* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    class Options extends React.Component {
-        render() {
-            return React.createElement("div", { className: "options" },
-                React.createElement("label", null,
-                    "Model: ",
-                    React.createElement(ModelSelector, { default: this.props.defaultModel, models: this.props.models, onModelChange: (model) => this.props.onModelChange(model) })),
-                React.createElement("label", null,
-                    "Sky box: ",
-                    React.createElement(SkyBoxSelector, { default: this.props.defaultSkyBox, skyBoxes: this.props.skyBoxes, onSkyBoxChange: (skyBox) => this.props.onSkyBoxChange(skyBox) })));
-        }
-    }
-    exports.default = Options;
-    class ModelSelector extends React.Component {
-        constructor(props) {
-            super(props);
-            this.state = { value: props.default };
-            this.handleSelectChanged = this.handleSelectChanged.bind(this);
-        }
-        render() {
-            return React.createElement("select", { value: this.state.value, onChange: this.handleSelectChanged },
-                this.props.models.map((model, index) => {
-                    return React.createElement("option", { key: model.url, value: index }, model.title);
-                }),
-                ";");
-        }
-        handleSelectChanged(event) {
-            const index = parseInt(event.currentTarget.value);
-            this.setState({
-                value: index
-            });
-            this.props.onModelChange(this.props.models[index]);
-        }
-    }
-    class SkyBoxSelector extends React.Component {
-        constructor(props) {
-            super(props);
-            this.state = { value: props.default };
-            this.handleSelectChanged = this.handleSelectChanged.bind(this);
-        }
-        render() {
-            return React.createElement("select", { value: this.state.value, onChange: this.handleSelectChanged },
-                this.props.skyBoxes.map((skyBox, index) => {
-                    return React.createElement("option", { key: skyBox.url, value: index }, skyBox.title);
-                }),
-                ";");
-        }
-        handleSelectChanged(event) {
-            const index = parseInt(event.currentTarget.value);
-            this.setState({
-                value: index
-            });
-            this.props.onSkyBoxChange(this.props.skyBoxes[index]);
-        }
-    }
-}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-
-
-/***/ }),
-/* 25 */
 /***/ (function(module, exports) {
 
 module.exports = ReactDOM;
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(8)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React) {
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class Attribution extends React.Component {
@@ -8115,6 +8106,54 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_
         }
     }
     exports.default = Attribution;
+}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__, exports, __webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = function (require, exports, React) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class Options extends React.Component {
+        render() {
+            return React.createElement("div", { className: "options" },
+                React.createElement("label", null,
+                    "Model: ",
+                    React.createElement(Selector, { default: this.props.defaultModel, options: this.props.models.map((model) => {
+                            return { key: model.title, value: model };
+                        }), onChange: (model) => this.props.onModelChange(model) })),
+                React.createElement("label", null,
+                    "Sky box: ",
+                    React.createElement(Selector, { default: this.props.defaultSkyBox, options: this.props.skyBoxes.map((skyBox) => {
+                            return { key: skyBox.title, value: skyBox };
+                        }), onChange: (skyBox) => this.props.onSkyBoxChange(skyBox) })));
+        }
+    }
+    exports.default = Options;
+    class Selector extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = { value: props.default };
+            this.handleSelectChanged = this.handleSelectChanged.bind(this);
+        }
+        render() {
+            return React.createElement("select", { value: this.state.value, onChange: this.handleSelectChanged },
+                this.props.options.map((option, index) => {
+                    return React.createElement("option", { key: option.key, value: index }, option.key);
+                }),
+                ";");
+        }
+        handleSelectChanged(event) {
+            const index = parseInt(event.currentTarget.value);
+            this.setState({
+                value: index
+            });
+            this.props.onChange(this.props.options[index].value);
+        }
+    }
 }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 

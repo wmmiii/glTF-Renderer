@@ -1,3 +1,5 @@
+import {vec3} from 'gl-matrix';
+
 import {Model} from './Model';
 
 export default class GlModelWrapper {
@@ -12,6 +14,8 @@ export default class GlModelWrapper {
   tangents: Array<Array<WebGLBuffer>>;
   biTangents: Array<Array<WebGLBuffer>>;
   tangentsInitialized: boolean;
+
+  center: vec3;
 
   constructor(model: Model) {
     this.model = model;

@@ -22,17 +22,21 @@ export default class Options extends React.Component<OptionsProps> {
   render() {
     return <div className="options">
       <label>
-        Model: <ModelSelector
+        Model: <Selector
           default={this.props.defaultModel}
-          models={this.props.models}
-          onModelChange={(model) => this.props.onModelChange(model)}
+          options={this.props.models.map((model) => {
+            return { key: model.title, value: model };
+          })}
+          onChange={(model: ModelDetail) => this.props.onModelChange(model)}
         />
       </label>
       <label>
-        Sky box: <SkyBoxSelector
+        Sky box: <Selector
           default={this.props.defaultSkyBox}
-          skyBoxes={this.props.skyBoxes}
-          onSkyBoxChange={(skyBox) => this.props.onSkyBoxChange(skyBox)}
+          options={this.props.skyBoxes.map((skyBox) => {
+            return { key: skyBox.title, value: skyBox };
+          })}
+          onChange={(skyBox: SkyBoxDetail) => this.props.onSkyBoxChange(skyBox)}
         />
       </label>
     </div>;
@@ -40,19 +44,22 @@ export default class Options extends React.Component<OptionsProps> {
 }
 
 
-interface ModelSelectorProps {
+interface SelectorProps<T> {
   default: number;
-  models: ModelDetail[];
-  onModelChange: (model: ModelDetail) => void;
+  options: {
+    key: string,
+    value: T
+  }[];
+  onChange: (option: T) => void;
 }
 
-interface ModelSelectorState {
+interface SelectorState {
   value: number;
 }
 
-class ModelSelector extends
-  React.Component<ModelSelectorProps, ModelSelectorState> {
-  constructor(props: ModelSelectorProps) {
+class Selector<T> extends
+  React.Component<SelectorProps<T>, SelectorState> {
+  constructor(props: SelectorProps<T>) {
     super(props);
     this.state = { value: props.default };
 
@@ -61,8 +68,8 @@ class ModelSelector extends
 
   render() {
     return <select value={this.state.value} onChange={this.handleSelectChanged}>
-      {this.props.models.map((model, index) => {
-        return <option key={model.url} value={index}>{model.title}</option>
+      {this.props.options.map((option, index) => {
+        return <option key={option.key} value={index}>{option.key}</option>
       })};
       </select>;
   }
@@ -72,43 +79,6 @@ class ModelSelector extends
     this.setState({
       value: index
     });
-    this.props.onModelChange(this.props.models[index]);
-  }
-}
-
-
-interface SkyBoxSelectorProps {
-  default: number;
-  skyBoxes: SkyBoxDetail[];
-  onSkyBoxChange: (skyBox: SkyBoxDetail) => void;
-}
-
-interface SkyBoxSelectorState {
-  value: number;
-}
-
-class SkyBoxSelector extends
-  React.Component<SkyBoxSelectorProps, SkyBoxSelectorState> {
-  constructor(props: SkyBoxSelectorProps) {
-    super(props);
-    this.state = { value: props.default };
-
-    this.handleSelectChanged = this.handleSelectChanged.bind(this);
-  }
-
-  render() {
-    return <select value={this.state.value} onChange={this.handleSelectChanged}>
-      {this.props.skyBoxes.map((skyBox, index) => {
-        return <option key={skyBox.url} value={index}>{skyBox.title}</option>
-      })};
-      </select>;
-  }
-
-  private handleSelectChanged(event: React.FormEvent<HTMLSelectElement>): void {
-    const index = parseInt(event.currentTarget.value);
-    this.setState({
-      value: index
-    });
-    this.props.onSkyBoxChange(this.props.skyBoxes[index]);
+    this.props.onChange(this.props.options[index].value);
   }
 }

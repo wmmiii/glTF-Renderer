@@ -15,7 +15,7 @@ let skyBoxShader: SkyBoxShader;
 let modelRenderer: ModelRenderer;
 let modelLoader: GltfLoader;
 
-let currentModel: number;
+let currentModel: number = 0;
 let loadedModels: {[key: string]: number} = {};
 
 // TODO: Make functions more generic and refactor into modules.
@@ -52,7 +52,7 @@ function drawScene(gl: WebGLRenderingContext) {
       projectionMatrix,
       FOV,          // FOV
       aspectRatio,  // Aspect
-      0.1,          // Z-Near
+      0.01,         // Z-Near
       100.0);       // Z-Far
 
 
@@ -78,8 +78,9 @@ function drawScene(gl: WebGLRenderingContext) {
     yRot = 0;
   }
 
-  mat4.rotate(modelViewMatrix, viewMatrix, yRot, [1, 0, 0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, xRot, [0, 0, 1]);
+  mat4.rotate(modelViewMatrix, viewMatrix, -Math.PI / 2.0, [1, 0, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, yRot, [1, 0, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, -xRot, [0, 1, 0]);
 
   gl.clearColor(1.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
@@ -91,7 +92,8 @@ function drawScene(gl: WebGLRenderingContext) {
   gl.clearDepth(1.0);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
-  modelRenderer.renderModel(0, projectionMatrix, modelViewMatrix, cubeMap);
+  modelRenderer.renderModel(
+      currentModel, projectionMatrix, modelViewMatrix, cubeMap);
 };
 
 /** Does what it says on the tin. */
@@ -112,14 +114,8 @@ function main() {
   skyBoxShader =
       SkyBoxShader.create(gl, () => canvas.width, () => canvas.height);
 
-  // const normalTest =
-  // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf';
   const helmet =
       'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf';
-  // const fish =
-  // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf';
-  // const corset =
-  // 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf';
 
   modelLoader.loadGltf(helmet)
       .then((model) => {
@@ -175,13 +171,31 @@ canvas.addEventListener('mousewheel', (event: WheelEvent) => {
   zoom -= event.wheelDeltaY / 1000;
 });
 
-const models: ModelDetail[] = [{
-  title: 'Damaged Helmet',
-  url:
-      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
-  creator:
-      {name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_'}
-}];
+
+const models: ModelDetail[] = [
+  {
+    title: 'Corset',
+    url:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Corset/glTF/Corset.gltf'
+  },
+  {
+    title: 'Damaged Helmet',
+    url:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf',
+    creator:
+        {name: 'theblueturtle_', url: 'https://sketchfab.com/theblueturtle_'}
+  },
+  {
+    title: 'Fish',
+    url:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF/BarramundiFish.gltf'
+  },
+  {
+    title: 'Normal Test',
+    url:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NormalTangentTest/glTF/NormalTangentTest.gltf'
+  }
+];
 
 const humus: Author = {
   name: 'Humus',

@@ -47,10 +47,12 @@ export class App extends React.Component<AppProps, AppState> {
         skyBoxCreator={this.state.currentSkyBox.creator}
       />
       <Options
+        models={this.props.models}
+        defaultModel={this.props.defaultModel}
+        onModelChange={this.handleModelChange}
         skyBoxes={this.props.skyBoxes}
         defaultSkyBox={this.props.defaultSkyBox}
         onSkyBoxChange={this.handleSkyBoxChange}
-        models={[]}
       />
     </div>
   }
