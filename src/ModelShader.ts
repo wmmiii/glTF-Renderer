@@ -12,7 +12,6 @@ attribute vec2 aTextureCoord;
 
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelViewMatrix;
-uniform mat4 uItModelViewMatrix;
 
 varying highp vec2 vTextureCoord;
 varying highp vec3 vFromCamera;
@@ -28,7 +27,6 @@ void main(void) {
   highp vec3 directionalLightColor = vec3(1, 0.9, 0.8);
   highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
 
-  highp mat4 temp = uItModelViewMatrix * uItModelViewMatrix;
   vNormal = (uModelViewMatrix * vec4(aVertexNormal, 0)).xyz;
   vTangent = (uModelViewMatrix * vec4(aVertexTan, 0)).xyz;
   vBiTangent = (uModelViewMatrix * vec4(aVertexBiTan, 0)).xyz;
@@ -106,14 +104,15 @@ void main(void) {
 `;
 
 export default class ModelShader extends ShaderProgram {
-  static create(
-      gl: WebGLRenderingContext, width: () => number, height: () => number) {
+  static create(gl: WebGLRenderingContext,
+                width: () => number,
+                height: () => number) {
     const shaderProgram =
         ShaderProgram.createShaderProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
     if (shaderProgram === null) {
       throw new Error(
           'Could not create shader program for model shader program!');
-    }
+      }
     const shader = new ModelShader(gl, shaderProgram, width, height);
     shader.bindLocations();
 
@@ -151,8 +150,8 @@ export default class ModelShader extends ShaderProgram {
 
   draw(mode = WebGLRenderingContext.TRIANGLES): void {
     this.bindBrdfTexture();
-    this.gl.drawElements(
-        mode, this.indexCount, this.indexType, this.indexOffset);
+    this.gl.drawElements(mode, this.indexCount, this.indexType,
+                         this.indexOffset);
   }
 
   setIndices(buffer: WebGLBuffer, type: number, count: number, offset: number) {
@@ -164,44 +163,44 @@ export default class ModelShader extends ShaderProgram {
     this.indexOffset = offset;
   }
 
-  bindVertexPosition(
-      buffer: WebGLBuffer, componentType: number, byteStride: number,
-      byteOffset: number): void {
-    this.bindAttribute(
-        buffer, this.vertexPosition, 3, componentType, false, byteStride,
-        byteOffset);
+  bindVertexPosition(buffer: WebGLBuffer,
+                     componentType: number,
+                     byteStride: number,
+                     byteOffset: number): void {
+    this.bindAttribute(buffer, this.vertexPosition, 3, componentType, false,
+                       byteStride, byteOffset);
   }
 
-  bindVertexNormal(
-      buffer: WebGLBuffer, componentType: number, byteStride: number,
-      byteOffset: number): void {
-    this.bindAttribute(
-        buffer, this.vertexNormal, 3, componentType, true, byteStride,
-        byteOffset);
+  bindVertexNormal(buffer: WebGLBuffer,
+                   componentType: number,
+                   byteStride: number,
+                   byteOffset: number): void {
+    this.bindAttribute(buffer, this.vertexNormal, 3, componentType, true,
+                       byteStride, byteOffset);
   }
 
-  bindVertexTangent(
-      buffer: WebGLBuffer, componentType: number, byteStride: number,
-      byteOffset: number): void {
-    this.bindAttribute(
-        buffer, this.vertexTangent, 3, componentType, true, byteStride,
-        byteOffset);
+  bindVertexTangent(buffer: WebGLBuffer,
+                    componentType: number,
+                    byteStride: number,
+                    byteOffset: number): void {
+    this.bindAttribute(buffer, this.vertexTangent, 3, componentType, true,
+                       byteStride, byteOffset);
   }
 
-  bindVertexBiTangent(
-      buffer: WebGLBuffer, componentType: number, byteStride: number,
-      byteOffset: number): void {
-    this.bindAttribute(
-        buffer, this.vertexBiTangent, 3, componentType, true, byteStride,
-        byteOffset);
+  bindVertexBiTangent(buffer: WebGLBuffer,
+                      componentType: number,
+                      byteStride: number,
+                      byteOffset: number): void {
+    this.bindAttribute(buffer, this.vertexBiTangent, 3, componentType, true,
+                       byteStride, byteOffset);
   }
 
-  bindVertexTexCoord(
-      buffer: WebGLBuffer, componentType: number, byteStride: number,
-      byteOffset: number): void {
-    this.bindAttribute(
-        buffer, this.vertexTexCoord, 2, componentType, false, byteStride,
-        byteOffset);
+  bindVertexTexCoord(buffer: WebGLBuffer,
+                     componentType: number,
+                     byteStride: number,
+                     byteOffset: number): void {
+    this.bindAttribute(buffer, this.vertexTexCoord, 2, componentType, false,
+                       byteStride, byteOffset);
   }
 
   setProjectionMatrix(projectionMatrix: mat4) {
@@ -251,7 +250,6 @@ export default class ModelShader extends ShaderProgram {
     this.projectionMatrix = this.findUniformOrThrow('uProjectionMatrix');
 
     this.modelViewMatrix = this.findUniformOrThrow('uModelViewMatrix');
-    this.itModelViewMatrix = this.findUniformOrThrow('uItModelViewMatrix');
 
     this.baseSampler = this.findUniformOrThrow('uBaseSampler');
     this.emissiveSampler = this.findUniformOrThrow('uEmissiveSampler');
